@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/usr/bin/bash
+set -e
 
 # Check if all arguments are provided
-if [ -z "$TARGET_DOMAIN" ] || [ -z "$TARGET_DOMAIN_USER" ] || [ -z "$NAME_OF_PRIVATE_KEY" ]; then
-    echo "Usage: $0 <TARGET_DOMAIN> <TARGET_DOMAIN_USER> <NAME_OF_PRIVATE_KEY>"
+if [ -z "$TARGET_DOMAIN" ] || [ -z "$TARGET_DOMAIN_USER" ] || [ -z "$PATH_OF_PRIVATE_KEY" ]; then
+    echo "Error:  Variable: ${TARGET_DOMAIN} ${TARGET_DOMAIN_USER} ${PATH_OF_PRIVATE_KEY} not defined"
     exit 1
 fi
 

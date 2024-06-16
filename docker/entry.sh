@@ -4,13 +4,14 @@
 # ssh specific
 # makes an entry into known hosts so it will not stop at prompt
 ssh-keyscan -t rsa $TARGET_DOMAIN > /etc/ssh/ssh_known_hosts
-# create ssh config for easier access in backup.sh
-create_ssh_config.sh
 
 # https://stackoverflow.com/a/48651061
 # is needed to save the container environment variables which for later usage from script for cron jobs
 export RESTIC_REPOSITORY=sftp:storagebox:${RESTIC_REPOSITORY_NAME}
 declare -p | grep -Ev 'BASHOPTS|BASH_VERSINFO|EUID|PPID|SHELLOPTS|UID' > /container.env
+
+# create ssh config for easier access in backup.sh
+create_ssh_config.sh
 
 #create crontab
 # https://stackoverflow.com/a/47960145 comment section recommended the proc for cron output is usable for docker logs
