@@ -4,10 +4,12 @@
 # ssh specific
 # makes an entry into known hosts so it will not stop at prompt
 ssh-keyscan -t rsa $TARGET_DOMAIN > /etc/ssh/ssh_known_hosts
-cp /ssh_configs/ssh_config /etc/ssh/
+# create ssh config for easier access in backup.sh
+create_ssh_config.sh
 
 # https://stackoverflow.com/a/48651061
 # is needed to save the container environment variables which for later usage from script for cron jobs
+export RESTIC_REPOSITORY=sftp:storagebox:${RESTIC_REPOSITORY_NAME}
 declare -p | grep -Ev 'BASHOPTS|BASH_VERSINFO|EUID|PPID|SHELLOPTS|UID' > /container.env
 
 #create crontab
