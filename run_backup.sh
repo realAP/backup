@@ -1,8 +1,6 @@
 #!/bin/env bash
 source .env
 docker run --restart=always --rm -it --hostname restic \
-  -v "${DATA_TO_BACKUP}":/source \
-  -v "${ENV_NAME_OF_PRIVATE_KEY}":/private_key \
   -v ./restore:/restore \
   -v ./log/:/var/log \
   -v "${DATA_TO_BACKUP}":/source \
