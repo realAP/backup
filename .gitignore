@@ -1,19 +1,12 @@
 # Project specific ignores
-restic/backup/*
-!restic/backup/.gitkeep
+/test.env
+/prod.env
 
-restic/log/*
+/log/*
 !restic/log/.gitkeep
 
-restic/mount/*
-!restic/mount/.gitkeep
-
-restic/source/*
-!restic/source/.gitkeep
-
-restic/ssh_configs/*
-!restic/ssh_configs/.gitkeep
-
+/restore/*
+!/restore/.gitkeep
 
 # Created by https://www.toptal.com/developers/gitignore/api/vim
 # Edit at https://www.toptal.com/developers/gitignore?templates=vim
