@@ -60,7 +60,7 @@ The `run_backup.sh` has a flag
   * the container will start and opens a bash terminal
 
 # Logging
-TBD
+The `log` folder is mounted to `/var/log` which enables to have access to different kinds of log files.
 
 # ToDo
 TBD
