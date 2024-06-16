@@ -23,6 +23,10 @@ These things are needed:
 * Docker
 * a device where the backup is running
 
+Place your public key at the sftp server and use the private key to log into it.
+> Currently, the private key should not have a password, it is not supported yet.
+> This is not ideal, in further versions private key with passwords are supported and recommended to use.
+
 ### Build image
 1. clone the repository `https://github.com/realAP/backup.git`
 1. `cd backup/docker` 
@@ -59,5 +63,9 @@ TBD
 TBD
 
 # Why | Motivation
-TBD
+I have used https://duplicati.com/ which i can recommend. 
+My problem is duplicati is not supported for my hardware anymore.
+This is the reason for this project.
 
+I have nextcloud hosted by hetzner (https://www.hetzner.com/storage/storage-share/) and storagebox (https://www.hetzner.com/storage/storage-box/) a sftp hosted platform.
+The backup should work without hetzner it just needs a nextcloud server and sftp access.
