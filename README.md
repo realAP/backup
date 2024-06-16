@@ -39,6 +39,7 @@ In first place a repository has to be created on the remote (sftp).
 
 ### Run Backup
 Just run the script `./run_backup.sh` it will immediately sync the nextcloud and creates a backup, the status report will be sent via telegram.
+This repeats every day at 1am (default), feel free to adjust the `cron` variable in the run_backup.sh
 
 # Restore data
 
