@@ -54,7 +54,10 @@ Example: to get the latest snapshot from your data
 
 ---
 # Debugging
-TBD
+The `run_backup.sh` has a flag 
+* `"DEBUG"=0` which disables
+* `"DEBUG"=1` which enables debugging
+  * the container will start and opens a bash terminal
 
 # Logging
 TBD
