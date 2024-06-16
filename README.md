@@ -42,7 +42,11 @@ Just run the script `./run_backup.sh` it will immediately sync the nextcloud and
 This repeats every day at 1am (default), feel free to adjust the `cron` variable in the run_backup.sh
 
 # Restore data
-
+Just work as you would do it with restic.
+When cloned the repo there is an empty folder called `restore` which is mounted into the container under /restore.
+This folder can be used as target for your restored data.
+Example: to get the latest snapshot from your data
+`./run_backup.sh restore latest --target /restore`
 
 ---
 # Debugging
