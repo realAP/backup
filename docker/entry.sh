@@ -24,9 +24,11 @@ if [[ "$DEBUG" == "1" ]];then
   exec bin/bash 
 fi
 
+# argument mode
 if [[ "$#" > 0 ]]; then
   restic $@
-else 
+else
+# default mode
   manager.sh
   cron -f 
 fi
