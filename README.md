@@ -1,5 +1,6 @@
 # backup
-How to make a backup with nextcloud, restic and hetzner storagebox and use telegram as notification service. All of it in a container based manner.
+Use this image to sync your nextcloud to a local directory. This will be mounted in your container and used as input for restic. Restic creates a backup and upload it to your sftp host.
+All of it in a container based manner.
 
 # Overview
 ![backup_overview.drawio.svg](backup_overview.drawio.svg)
