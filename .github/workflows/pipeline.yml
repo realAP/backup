@@ -20,8 +20,8 @@ jobs:
       - name: determine version
         run: |
           VERSION=$(cat VERSION | tr -d ' \t\n\r')
-          echo "VERSION=${VERSION}" > $GITHUB_ENV
-      - name: build docker image ${VERSION}
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: build docker image ${{ env.VERSION }}
         run: |
           cd docker
           docker build . -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:${VERSION}
@@ -37,7 +37,7 @@ jobs:
           docker push ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
         env:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
-      - name: push ${VERSION}
+      - name: push ${{ env.VERSION }}
         if: contains('refs/heads/main', github.ref)
         run: |
           docker push ${{ vars.DOCKER_HUB_USERNAME }}/backup:${VERSION}
