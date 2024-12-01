@@ -42,7 +42,6 @@ jobs:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
 
   publish-dockerhub-description:
-    if: contains('refs/heads/main', github.ref)
     needs:
       - publish-docker-image
     runs-on: ubuntu-latest
