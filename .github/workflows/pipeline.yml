@@ -1,0 +1,60 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+    - 'main'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+
+jobs:
+  publish-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build docker image latest
+        run: |
+          cd docker
+          docker build . -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
+      - name: determine version
+        run: |
+          VERSION=$(cat VERSION | tr -d ' \t\n\r')
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: build docker image ${{ env.VERSION }}
+        run: |
+          cd docker
+          docker build . -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:${VERSION}
+      - name: Login to Docker Hub
+        if: contains('refs/heads/main', github.ref)
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: push latest
+        if: contains('refs/heads/main', github.ref)
+        run: |
+          docker push ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
+        env:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+      - name: push ${{ env.VERSION }}
+        if: contains('refs/heads/main', github.ref)
+        run: |
+          docker push ${{ vars.DOCKER_HUB_USERNAME }}/backup:${VERSION}
+        env:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+
+  publish-dockerhub-description:
+    if: contains('refs/heads/main', github.ref)
+    needs:
+      - publish-docker-image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Dockerhub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          repository: ${{ vars.DOCKER_HUB_USERNAME }}/backup
+          readme-filepath: ./README.md
