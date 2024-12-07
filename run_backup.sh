@@ -1,8 +1,9 @@
 #!/bin/env bash
 
+RESTART_OPTION="--restart=always"
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    --always) RESTART_OPTION="--restart=always"; shift ;;
+    --rm) RESTART_OPTION="--rm"; shift ;;
     *) break ;;
   esac
 done
@@ -28,4 +29,5 @@ docker run ${RESTART_OPTION} -it --network=backup_default --hostname backup \
   -e POSTGRES_PASSWORD="${ENV_POSTGRES_PASSWORD}" \
   -e POSTGRES_DATABASE="${ENV_POSTGRES_DATABASE}" \
   -e POSTGRES_HOST="${ENV_POSTGRES_HOST}" \
-  devp1337/backup:latest $@
+  -e PROVISION_MODE="${ENV_PROVISION_MODE}" \
+  devp1337/backup:latest "${@}"
