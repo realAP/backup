@@ -24,4 +24,8 @@ docker run ${RESTART_OPTION} -it --network=backup_default --hostname backup \
   -e "TELEGRAM_TOKEN"="${ENV_TELEGRAM_TOKEN}" \
   -e "TELEGRAM_CHAT_ID"="${ENV_TELEGRAM_CHAT_ID}" \
   -e "CRON"="${ENV_CRON_SCHEDULE}" \
+  -e POSTGRES_USER="${ENV_POSTGRES_USER}" \
+  -e POSTGRES_PASSWORD="${ENV_POSTGRES_PASSWORD}" \
+  -e POSTGRES_DATABASE="${ENV_POSTGRES_DATABASE}" \
+  -e POSTGRES_HOST="${ENV_POSTGRES_HOST}" \
   devp1337/backup:latest $@
