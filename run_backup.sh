@@ -1,19 +1,20 @@
 #!/bin/env bash
 
 RESTART_OPTION="--restart=always"
+SCRIPT_DEBUG=0
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    --rm) RESTART_OPTION="--rm"; shift ;;
+    DEBUG) RESTART_OPTION="--rm -it"; SCRIPT_DEBUG=1; shift ;;
     *) break ;;
   esac
 done
 
 source local.env
-docker run ${RESTART_OPTION} -it --network=backup_default --hostname backup \
+docker run ${RESTART_OPTION} --network=backup_default --hostname backup \
   -v ./restore:/restore \
   -v ./log/:/var/log \
   -v "${DATA_TO_BACKUP}":/source \
-  -e "DEBUG"=1 \
+  -e "DEBUG"="${SCRIPT_DEBUG}" \
   -e "TARGET_DOMAIN"="${ENV_TARGET_DOMAIN}" \
   -e "TARGET_DOMAIN_USER"="${ENV_TARGET_DOMAIN_USER}" \
   -e "SSH_PRIVATE_KEY"="${ENV_SSH_PRIVATE_KEY}" \
