@@ -1,10 +1,8 @@
 #!/bin/bash -l
 
-#TODO out of entry file this is part of prepare step
-
 prepare.sh
 
-## TODO why is this here? should this be in prepare.sh?
+# Build repository variable which is later used for restic to determine repo
 export RESTIC_REPOSITORY=sftp:storagebox:${RESTIC_REPOSITORY_NAME}
 
 # https://stackoverflow.com/a/48651061
@@ -24,10 +22,10 @@ if [[ "$DEBUG" == "1" ]];then
 fi
 
 # argument mode
-if [[ "$#" > 0 ]]; then
-  restic $@
+if [[ $# -gt 0 ]]; then
+  restic "${@}"
 else
-# default mode
+# default mode for provisioning
   manager.sh
   cron -f 
 fi
