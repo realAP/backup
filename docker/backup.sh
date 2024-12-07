@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/usr/bin/env bash
 set -e
 echo "=========LET'S DO THIS, BACKUP THE SHIT!!!========="
 date

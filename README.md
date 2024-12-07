@@ -1,4 +1,5 @@
 [![Pipeline](https://github.com/realAP/backup/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/realAP/backup/actions/workflows/pipeline.yml)
+#TODO: update me
 # backup
 Use this image to sync your nextcloud to a local directory. This will be mounted in your container and used as input for restic. Restic creates a backup and upload it to your sftp host.
 All of it in a container based manner.
