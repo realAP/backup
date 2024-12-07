@@ -46,6 +46,10 @@ esac
 
 echo "All required environment variables are set."
 
+### create folder which are over written when mounted
+mkdir -p /source
+mkdir -p /restore
+
 ## Backup specific parts not plugins
 prepare_ssh.sh
 
