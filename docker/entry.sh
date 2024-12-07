@@ -1,9 +1,9 @@
 #!/bin/bash -l
 
-prepare.sh
-
 # Build repository variable which is later used for restic to determine repo
 export RESTIC_REPOSITORY=sftp:storagebox:${RESTIC_REPOSITORY_NAME}
+
+prepare.sh
 
 # https://stackoverflow.com/a/48651061
 # is needed to save the container environment variables which for later usage from script for cron jobs
