@@ -12,7 +12,7 @@ telegram.sh ${nextcloudLastLogfile}
 telegram.sh ${backupLastLogfile}
 
 if [[ $status_nextcloud == 0 ]]; then
-  telegram.sh "Nextcloud: Successfull"
+  telegram.sh "Nextcloud: Successful"
 else
   telegram.sh "Nextcloud: Failure"
 fi
