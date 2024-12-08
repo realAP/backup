@@ -35,6 +35,13 @@ Providers currently supported:
 - **PostgreSQL**: Dumps database content into `/source`.
 - **None**: No additional data is written to `/source`.
 
+---
+**3. Environment Variables**
+
+There is a `.env` file where you can set all needed variables.
+It describes every variable and provides an example value.
+
+
 ## How to backup
 ### 1. Place your public key at the sftp server and use the private key to log into it.
 When used with Hetzner Storagebox, follow this [guide](https://docs.hetzner.com/storage/storage-box/backup-space-ssh-keys)
