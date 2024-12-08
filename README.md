@@ -70,7 +70,7 @@ Example: to get the latest snapshot from your data
 
 ## Operations
 You can use the script in two ways:
-1. Default is running the script without any arguments.
+1. Default is running the script without any arguments. As shown in the example above.
     * e.g. `./run_backup.sh`
 1. With arguments. Use the script as you would use restic. The script will run the container in which restic is started and places every argument behind it.
    You have access to all the environment variables set in the `.env` file. Remember `/restore` is **always** binded to the host. And `/source` folder is binded to the host when not set to `none`.
