@@ -1,6 +1,10 @@
 [![Pipeline](https://github.com/realAP/backup/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/realAP/backup/actions/workflows/pipeline.yml)
+[![Docker Image Version](https://img.shields.io/docker/v/devp1337/backup?sort=semver)](https://hub.docker.com/r/devp1337/backup)
+
+### Version: 1.1.0
+
 # backup
-Use this image to load your data from a provider into your binded folder. This folder will be used as input for restic. Restic creates a backup and upload it to your sftp host.
+Use this image to load your data from a **provider** into your **binded** folder. This folder will be used as input for restic. Restic creates a backup and upload it to your sftp host.
 All of it in a container based manner.
 
 # Overview
