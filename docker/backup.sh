@@ -3,7 +3,7 @@ set -e
 echo "=========LET'S DO THIS, BACKUP THE SHIT!!!========="
 date
 hasRepo="restic cat config"
-$hasRepo || exit 1
+$hasRepo || restic init || exit 1
 
 echo "+------------------------------------------+"
 echo "|::::::::::::::::call backup:::::::::::::::|"
