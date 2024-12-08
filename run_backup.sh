@@ -1,13 +1,22 @@
 #!/bin/env bash
 
+# Default values
 RESTART_OPTION="--restart=always"
 SCRIPT_DEBUG=0
-while [[ "$#" -gt 0 ]]; do
+
+# Check the first argument
+if [[ "$#" -gt 0 ]]; then
   case $1 in
-    DEBUG) RESTART_OPTION="--rm -it"; SCRIPT_DEBUG=1; shift ;;
-    *) break ;;
+    DEBUG)
+      RESTART_OPTION="-it --rm"
+      SCRIPT_DEBUG=1
+      shift
+      ;;
+    *)
+      RESTART_OPTION="--rm"
+      ;;
   esac
-done
+fi
 
 source local.env
 docker run ${RESTART_OPTION} --network=backup_default --hostname backup \
