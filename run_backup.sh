@@ -1,15 +1,15 @@
 #!/bin/env bash
 
+### JUST FOR DEBUGGING
 # Default values
 RESTART_OPTION="--restart=always"
-SCRIPT_DEBUG=0
-
+_DEBUG=0
 # Check the first argument
 if [[ "$#" -gt 0 ]]; then
   case $1 in
     DEBUG)
       RESTART_OPTION="-it --rm"
-      SCRIPT_DEBUG=1
+      _DEBUG=1
       shift
       ;;
     *)
@@ -17,13 +17,50 @@ if [[ "$#" -gt 0 ]]; then
       ;;
   esac
 fi
-
+###
 source local.env
+###
+
+### create restore folder at the same level as the script
+# Default paths based on the location of run_backup.sh
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
+# Handle SCRIPT_RESTORE_DATA_TO
+if [[ -z "$SCRIPT_RESTORE_DATA_TO" ]]; then
+  SCRIPT_RESTORE_DATA_TO="$SCRIPT_DIR/restore"
+  mkdir -p "$SCRIPT_RESTORE_DATA_TO"
+  echo "Defaulting SCRIPT_RESTORE_DATA_TO to $SCRIPT_RESTORE_DATA_TO"
+fi
+
+# Handle SCRIPT_LOG_DIR
+if [[ -n "$SCRIPT_LOG_DIR" ]]; then
+  LOG_MOUNT="-v ${SCRIPT_LOG_DIR}:/var/log"
+  echo "Mounting log directory: $SCRIPT_LOG_DIR"
+else
+  LOG_MOUNT=""
+  echo "Skipping log directory mount"
+fi
+
+# Handle SCRIPT_DATA_TO_BACKUP
+if [[ "$SCRIPT_DATA_TO_BACKUP" == "none" ]]; then
+  SOURCE_MOUNT=""
+  echo "Skipping bind a folder to container as source, SCRIPT_DATA_TO_BACKUP is set to 'none'"
+elif [[ -z "$SCRIPT_DATA_TO_BACKUP" ]]; then
+  SCRIPT_DATA_TO_BACKUP="$SCRIPT_DIR/source"
+  mkdir -p "$SCRIPT_DATA_TO_BACKUP"
+  SOURCE_MOUNT="-v ${SCRIPT_DATA_TO_BACKUP}:/source"
+  echo "Defaulting SCRIPT_DATA_TO_BACKUP to $SCRIPT_DATA_TO_BACKUP"
+else
+  SOURCE_MOUNT="-v ${SCRIPT_DATA_TO_BACKUP}:/source"
+  echo "Mounting data to backup directory: $SCRIPT_DATA_TO_BACKUP"
+fi
+
+
 docker run ${RESTART_OPTION} --network=backup_default --hostname backup \
-  -v ./restore:/restore \
-  -v ./log/:/var/log \
-  -v "${DATA_TO_BACKUP}":/source \
-  -e "DEBUG"="${SCRIPT_DEBUG}" \
+  -v "${SCRIPT_RESTORE_DATA_TO}":/restore \
+  $LOG_MOUNT \
+  $SOURCE_MOUNT \
+  -e "DEBUG"="${_DEBUG}" \
   -e "TARGET_DOMAIN"="${ENV_TARGET_DOMAIN}" \
   -e "TARGET_DOMAIN_USER"="${ENV_TARGET_DOMAIN_USER}" \
   -e "SSH_PRIVATE_KEY"="${ENV_SSH_PRIVATE_KEY}" \
