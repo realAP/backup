@@ -18,7 +18,7 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 ###
-source local.env
+source .env
 ###
 
 ### create restore folder at the same level as the script
