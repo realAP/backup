@@ -13,6 +13,12 @@ if [[ "$PROVISION_MODE" == "postgres" ]]; then
   status_provision=$?
 fi
 
+if [[ "$PROVISION_MODE" == "none" ]]; then
+  echo "PROVISION_MODE is set to none." &> ${provisionLastLogfile}
+  # shellcheck disable=SC2320
+  status_provision=$?
+fi
+
 backup.sh &> ${backupLastLogfile}
 status_backup=$?
 
@@ -26,7 +32,7 @@ else
 fi
 
 if [[ $status_backup == 0 ]]; then
-  telegram.sh "Backup: Successfull"
+  telegram.sh "Backup: Successful"
 else
   telegram.sh "Backup: Failure"
 fi
