@@ -38,8 +38,11 @@ case "$PROVISION_MODE" in
         check_var "NC_USER"
         check_var "NC_PASS"
         ;;
+    none)
+        echo "Provision mode: none"
+        ;;
     *)
-        echo "Error: Invalid provision mode '$PROVISION_MODE'. Expected 'postgres' or 'nextcloud'."
+        echo "Error: Invalid provision mode '$PROVISION_MODE'. Expected 'postgres' or 'nextcloud' or 'none'."
         exit 1
         ;;
 esac
