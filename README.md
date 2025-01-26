@@ -54,6 +54,8 @@ When used with Hetzner Storagebox, follow this [guide](https://docs.hetzner.com/
 
 ### 3. Set .env file
 Fill all needed variables in the `.env` file, it is provided with example values.
+* For Telegram bot token see [here](https://core.telegram.org/bots/features#creating-a-new-bot)
+* For Telegram chat id see [here](https://stackoverflow.com/a/32572159)
 
 ### 4. Run Backup
 Just run the script `./run_backup.sh` the backup will immediately start and repeat every day at 1am (default).
