@@ -49,11 +49,17 @@ When used with Hetzner Storagebox, follow this [guide](https://docs.hetzner.com/
 
 ### 2. Download the script and .env file
 * `curl -O https://raw.githubusercontent.com/realAP/backup/main/run_backup.sh`
-* `curl -0 https://raw.githubusercontent.com/realAP/backup/main/.env`
+* `curl -O https://raw.githubusercontent.com/realAP/backup/main/.env`
 * make the script executable `chmod +x run_backup.sh`
 
 ### 3. Set .env file
 Fill all needed variables in the `.env` file, it is provided with example values.
+
+* For ``ENV_TELEGRAM_TOKEN`` token see [here](https://core.telegram.org/bots/features#creating-a-new-bot)
+* For ``ENV_TELEGRAM_CHAT_ID`` see [here](https://stackoverflow.com/a/32572159)
+* For ``ENV_SSH_PRIVATE_KEY_BASE64`` you can use the following command to get the base64 encoded private key in the `.env` file
+  * ``echo "ENV_SSH_PRIVATE_KEY_BASE64=$(cat <insert path of private key> | base64 -w 0)" >> .env``
+  * ATTENTION: you have to remove the template key in the `.env` file afterward
 
 ### 4. Run Backup
 Just run the script `./run_backup.sh` the backup will immediately start and repeat every day at 1am (default).
