@@ -66,7 +66,7 @@ docker run ${RESTART_OPTION} --hostname backup \
   -e "DEBUG"="${_DEBUG}" \
   -e "TARGET_DOMAIN"="${ENV_TARGET_DOMAIN}" \
   -e "TARGET_DOMAIN_USER"="${ENV_TARGET_DOMAIN_USER}" \
-  -e "SSH_PRIVATE_KEY"="${ENV_SSH_PRIVATE_KEY}" \
+  -e "SSH_PRIVATE_KEY_BASE64"="${ENV_SSH_PRIVATE_KEY_BASE64}" \
   -e "NC_URL"="${ENV_NC_URL}" \
   -e "NC_USER"="${ENV_NC_USER}" \
   -e "NC_PASS"="${ENV_NC_PASS}" \

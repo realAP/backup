@@ -15,7 +15,7 @@ check_var() {
 # Common environment variables
 check_var "TARGET_DOMAIN"
 check_var "TARGET_DOMAIN_USER"
-check_var "SSH_PRIVATE_KEY"
+check_var "SSH_PRIVATE_KEY_BASE64"
 check_var "RESTIC_REPOSITORY_NAME"
 check_var "RESTIC_PASSWORD"
 check_var "TELEGRAM_TOKEN"
