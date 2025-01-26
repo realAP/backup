@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
          context: ./docker
-         push: contains('refs/heads/main', github.ref)
+         push: ${{ contains('refs/heads/main', github.ref) }}
          tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest, ${{ vars.DOCKER_HUB_USERNAME }}/backup:${VERSION}
          platforms: linux/amd64,linux/arm/v7,linux/arm64
          cache-from: type=gha
