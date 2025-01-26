@@ -5,21 +5,21 @@ backupLastLogfile="/var/log/backup-last.log"
 
 # check which provision mode to execute
 if [[ "$PROVISION_MODE" == "nextcloud" ]]; then
-  nextcloud.sh &> ${provisionLastLogfile}
+  nextcloud.sh 2>&1 | tee ${provisionLastLogfile}
   status_provision=$?
 fi
 if [[ "$PROVISION_MODE" == "postgres" ]]; then
-  postgres_backup.sh &> ${provisionLastLogfile}
+  postgres_backup.sh 2>&1 | tee ${provisionLastLogfile}
   status_provision=$?
 fi
 
 if [[ "$PROVISION_MODE" == "none" ]]; then
-  echo "PROVISION_MODE is set to none." &> ${provisionLastLogfile}
+  echo "PROVISION_MODE is set to none." 2>&1 | tee ${provisionLastLogfile}
   # shellcheck disable=SC2320
   status_provision=$?
 fi
 
-backup.sh &> ${backupLastLogfile}
+backup.sh 2>&1 | cat | tee ${backupLastLogfile}
 status_backup=$?
 
 telegram.sh ${provisionLastLogfile}
