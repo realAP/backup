@@ -49,7 +49,7 @@ When used with Hetzner Storagebox, follow this [guide](https://docs.hetzner.com/
 
 ### 2. Download the script and .env file
 * `curl -O https://raw.githubusercontent.com/realAP/backup/main/run_backup.sh`
-* `curl -0 https://raw.githubusercontent.com/realAP/backup/main/.env`
+* `curl -O https://raw.githubusercontent.com/realAP/backup/main/.env`
 * make the script executable `chmod +x run_backup.sh`
 
 ### 3. Set .env file
