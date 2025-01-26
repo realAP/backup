@@ -29,9 +29,8 @@ jobs:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: push ${{ env.VERSION }} and latest
-        if: contains('refs/heads/main', github.ref)
+        #if: contains('refs/heads/main', github.ref)
         run: |
-          docker push ${{ vars.DOCKER_HUB_USERNAME }}/backup:${VERSION}
           docker push ${{ vars.DOCKER_HUB_USERNAME }}/backup:dev
         env:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
