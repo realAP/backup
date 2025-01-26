@@ -11,7 +11,7 @@ fi
 ssh-keyscan -t rsa $TARGET_DOMAIN > /etc/ssh/ssh_known_hosts
 
 # Create the private key file
-echo "$SSH_PRIVATE_KEY" > /private_key
+echo "$SSH_PRIVATE_KEY" | base64 --decode > /private_key
 chmod 600 /private_key
 
 # Create the ssh_config file
