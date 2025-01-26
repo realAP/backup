@@ -29,35 +29,38 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 if [[ -z "$SCRIPT_RESTORE_DATA_TO" ]]; then
   SCRIPT_RESTORE_DATA_TO="$SCRIPT_DIR/restore"
   mkdir -p "$SCRIPT_RESTORE_DATA_TO"
-  echo "Defaulting SCRIPT_RESTORE_DATA_TO to $SCRIPT_RESTORE_DATA_TO"
+  RESTORE_MOUNT="-v "${SCRIPT_RESTORE_DATA_TO}":/restore"
+  echo "Mounting restore to default directory: $SCRIPT_RESTORE_DATA_TO"
+else
+  RESTORE_MOUNT="-v ${SCRIPT_DATA_TO_BACKUP}:/source"
+  echo "Mounting restore to directory: $SCRIPT_RESTORE_DATA_TO"
 fi
 
 # Handle SCRIPT_LOG_DIR
-if [[ -n "$SCRIPT_LOG_DIR" ]]; then
-  LOG_MOUNT="-v ${SCRIPT_LOG_DIR}:/var/log"
-  echo "Mounting log directory: $SCRIPT_LOG_DIR"
+if [[ -n "$SCRIPT_LOG_PATH" ]]; then
+  LOG_MOUNT="-v ${SCRIPT_LOG_PATH}:/var/log"
+  echo "Mounting log directory: $SCRIPT_LOG_PATH"
 else
   LOG_MOUNT=""
-  echo "Skipping log directory mount"
+  echo "Skipping to mount a log directory"
 fi
 
 # Handle SCRIPT_DATA_TO_BACKUP
 if [[ "$SCRIPT_DATA_TO_BACKUP" == "none" ]]; then
   SOURCE_MOUNT=""
-  echo "Skipping bind a folder to container as source, SCRIPT_DATA_TO_BACKUP is set to 'none'"
+  echo "Skip mounting a source folder to container, SCRIPT_DATA_TO_BACKUP is set to 'none'"
 elif [[ -z "$SCRIPT_DATA_TO_BACKUP" ]]; then
   SCRIPT_DATA_TO_BACKUP="$SCRIPT_DIR/source"
   mkdir -p "$SCRIPT_DATA_TO_BACKUP"
   SOURCE_MOUNT="-v ${SCRIPT_DATA_TO_BACKUP}:/source"
-  echo "Defaulting SCRIPT_DATA_TO_BACKUP to $SCRIPT_DATA_TO_BACKUP"
+  echo "Mounting source to default directory: $SCRIPT_DATA_TO_BACKUP"
 else
   SOURCE_MOUNT="-v ${SCRIPT_DATA_TO_BACKUP}:/source"
-  echo "Mounting data to backup directory: $SCRIPT_DATA_TO_BACKUP"
+  echo "Mounting source to directory: $SCRIPT_DATA_TO_BACKUP"
 fi
 
-
-docker run ${RESTART_OPTION} --network=backup_default --hostname backup \
-  -v "${SCRIPT_RESTORE_DATA_TO}":/restore \
+docker run ${RESTART_OPTION} --hostname backup \
+  $RESTORE_MOUNT \
   $LOG_MOUNT \
   $SOURCE_MOUNT \
   -e "DEBUG"="${_DEBUG}" \
