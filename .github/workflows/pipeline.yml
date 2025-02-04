@@ -106,11 +106,15 @@ jobs:
             echo "File 2 content" > test-data/file2.txt
             echo "File 3 content" > test-data/file3.txt
 
-        - name: build docker image
-          run: |
-            cd docker
-            docker build -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest .
-            cd ..
+        - name: Build for testing
+          uses: docker/build-push-action@v6
+          with:
+            context: ./docker
+            push: false
+            tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
+            platforms: linux/amd64
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
 
         - name: prepare test.env
           run: |
