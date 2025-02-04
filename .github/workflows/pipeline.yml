@@ -106,6 +106,7 @@ jobs:
             echo "File 2 content" > test-data/file2.txt
             echo "File 3 content" > test-data/file3.txt
 
+        - uses: docker/setup-buildx-action@v3
         - name: Build for testing
           uses: docker/build-push-action@v6
           with:
