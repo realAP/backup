@@ -18,7 +18,8 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 ###
-source .env
+### TODO: find a way to change env file for testing and prod usage
+source test.env
 ###
 
 ### create restore folder at the same level as the script
