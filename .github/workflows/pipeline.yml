@@ -106,6 +106,14 @@ jobs:
             echo "File 2 content" > test-data/file2.txt
             echo "File 3 content" > test-data/file3.txt
 
+        - name: build docker image
+          run: |
+            docker build -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
+
+        - name: prepare test.env
+            run: |
+              echo "ENV_SSH_PRIVATE_KEY_BASE64=$(cat $(pwd)/sftp-keys/id_rsa | base64 -w 0)" >> test.env
+
         - name: Run Backup Container
           run: |
-              echo "not implemented"
+              ./run_backup.sh && sleep 25 && exit 0

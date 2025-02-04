@@ -13,5 +13,6 @@ cat <<EOL > /etc/ssh/ssh_config
 Host storagebox
     Hostname $TARGET_DOMAIN
     User $TARGET_DOMAIN_USER
+    Port ${TARGET_DOMAIN_PORT:-22}
     IdentityFile /private_key
 EOL

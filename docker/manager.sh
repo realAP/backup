@@ -33,6 +33,10 @@ fi
 
 if [[ $status_backup == 0 ]]; then
   telegram.sh "Backup: Successful"
+  # todo: find a better way for assert the backup status in tests
+  echo "Backup: Successful" 2>&1 | tee ${backupLastLogfile}
 else
   telegram.sh "Backup: Failure"
+  # todo: find a better way for assert the backup status in tests
+  echo "Backup: Failure" 2>&1 | tee ${backupLastLogfile}
 fi
