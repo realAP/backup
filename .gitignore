@@ -1,5 +1,5 @@
 # Project specific ignores
-/test.env
+/local.env
 /prod.env
 
 /log/*
