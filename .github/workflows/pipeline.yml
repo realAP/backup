@@ -82,7 +82,7 @@ jobs:
         - name: Start SFTP Server with Mounts
           run: |
             docker run -d --name fake-sftp \
-              -p 22:22 \
+              -p 2222:22 \
               -v $(pwd)/sftp-keys/id_rsa.pub:/home/test/.ssh/keys/id_rsa.pub:ro \
               -v $(pwd)/sftp-data:/home/test/uploads \
               atmoz/sftp test::1001
