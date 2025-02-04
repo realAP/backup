@@ -66,46 +66,46 @@ jobs:
           readme-filepath: ./README.md
 
 
-test:
-    runs-on: ubuntu-latest
+  test:
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
 
-      - name: Generate SSH Key Pair
-        run: |
-          mkdir -p sftp-keys
-          ssh-keygen -t rsa -b 2048 -f sftp-keys/id_rsa -q -N ""
-          chmod 600 sftp-keys/id_rsa
+        - name: Generate SSH Key Pair
+          run: |
+            mkdir -p sftp-keys
+            ssh-keygen -t rsa -b 2048 -f sftp-keys/id_rsa -q -N ""
+            chmod 600 sftp-keys/id_rsa
 
-      - name: Start SFTP Server with Mounts
-        run: |
-          docker run -d --name fake-sftp \
-            -p 22:22 \
-            -v $(pwd)/sftp-keys/id_rsa.pub:/home/test/.ssh/keys/id_rsa.pub:ro \
-            -v $(pwd)/sftp-data:/home/test/uploads \
-            atmoz/sftp test::1001
+        - name: Start SFTP Server with Mounts
+          run: |
+            docker run -d --name fake-sftp \
+              -p 22:22 \
+              -v $(pwd)/sftp-keys/id_rsa.pub:/home/test/.ssh/keys/id_rsa.pub:ro \
+              -v $(pwd)/sftp-data:/home/test/uploads \
+              atmoz/sftp test::1001
 
-      - name: Wait for SFTP server to be ready
-        run: |
-          for i in {1..10}; do
-            if nc -z localhost 2222; then
-              echo "SFTP server is up!"
-              exit 0
-            fi
-            echo "Waiting for SFTP server..."
-            sleep 2
-          done
-          echo "SFTP server did not start in time" && exit 1
+        - name: Wait for SFTP server to be ready
+          run: |
+            for i in {1..10}; do
+              if nc -z localhost 2222; then
+                echo "SFTP server is up!"
+                exit 0
+              fi
+              echo "Waiting for SFTP server..."
+              sleep 2
+            done
+            echo "SFTP server did not start in time" && exit 1
 
-      - name: Create test files
-        run: |
-          mkdir -p test-data
-          echo "File 1 content" > test-data/file1.txt
-          echo "File 2 content" > test-data/file2.txt
-          echo "File 3 content" > test-data/file3.txt
+        - name: Create test files
+          run: |
+            mkdir -p test-data
+            echo "File 1 content" > test-data/file1.txt
+            echo "File 2 content" > test-data/file2.txt
+            echo "File 3 content" > test-data/file3.txt
 
-      - name: Run Backup Container
-        run: |
-            echo "not implemented"
+        - name: Run Backup Container
+          run: |
+              echo "not implemented"
