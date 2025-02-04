@@ -111,7 +111,7 @@ jobs:
             docker build -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
 
         - name: prepare test.env
-            run: |
+          run: |
               echo "ENV_SSH_PRIVATE_KEY_BASE64=$(cat $(pwd)/sftp-keys/id_rsa | base64 -w 0)" >> test.env
 
         - name: Run Backup Container
