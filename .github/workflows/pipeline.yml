@@ -109,7 +109,7 @@ jobs:
         - name: build docker image
           run: |
             cd docker
-            docker build -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
+            docker build -t ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest .
             cd ..
 
         - name: prepare test.env
