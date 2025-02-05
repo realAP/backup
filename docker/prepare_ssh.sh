@@ -16,3 +16,11 @@ Host storagebox
     Port ${TARGET_DOMAIN_PORT:-22}
     IdentityFile /private_key
 EOL
+
+
+echo "DEBUG: prepare_ssh.sh"
+echo "cat known hosts"
+cat /etc/ssh/ssh_known_hosts
+
+echo "cat ssh_config"
+cat /etc/ssh/ssh_config
