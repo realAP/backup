@@ -21,6 +21,8 @@ if [[ "$DEBUG" == "1" ]];then
   exec bin/bash 
 fi
 
+echo "TODO: REMOVE ME: CI/CD TESTING"
+
 # argument mode
 if [[ $# -gt 0 ]]; then
   restic "${@}"
