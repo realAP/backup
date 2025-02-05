@@ -22,6 +22,12 @@ if [[ "$DEBUG" == "1" ]];then
 fi
 
 echo "TODO: REMOVE ME: CI/CD TESTING"
+echo "DEBUG: prepare_ssh.sh"
+echo "cat known hosts"
+cat /etc/ssh/ssh_known_hosts
+
+echo "cat ssh_config"
+cat /etc/ssh/ssh_config
 
 # argument mode
 if [[ $# -gt 0 ]]; then
