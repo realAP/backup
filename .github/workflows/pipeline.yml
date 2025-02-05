@@ -124,4 +124,4 @@ jobs:
 
         - name: Run Backup Container
           run: |
-              ./run_backup.sh && sleep 25 && exit 0
+              ./run_backup.sh backup /source
