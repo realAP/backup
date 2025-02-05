@@ -56,5 +56,12 @@ mkdir -p /restore
 ## Backup specific parts not plugins
 prepare_ssh.sh
 
+echo "DEBUG: prepare_ssh.sh"
+echo "cat known hosts"
+cat /etc/ssh/ssh_known_hosts
+
+echo "cat ssh_config"
+cat /etc/ssh/ssh_config
+
 ## Feature specific parts
 # currently nothing here
