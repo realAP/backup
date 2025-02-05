@@ -82,4 +82,4 @@ docker run ${RESTART_OPTION} --hostname backup \
   -e POSTGRES_HOST="${ENV_POSTGRES_HOST}" \
   -e PROVISION_MODE="${ENV_PROVISION_MODE}" \
   -e "CRON"="${ENV_CRON}" \
-  devp1337/backup:latest "${@}"
+  devp1337/backup:test "${@}"

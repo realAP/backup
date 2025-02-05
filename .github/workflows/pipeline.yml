@@ -112,7 +112,7 @@ jobs:
           with:
             context: ./docker
             push: false
-            tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
+            tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:test
             platforms: linux/amd64
             cache-from: type=gha
             cache-to: type=gha,mode=max
