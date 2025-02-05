@@ -18,7 +18,8 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 ###
-source .env
+### TODO: find a way to change env file for testing and prod usage
+source test.env
 ###
 
 ### create restore folder at the same level as the script
@@ -65,6 +66,7 @@ docker run ${RESTART_OPTION} --hostname backup \
   $SOURCE_MOUNT \
   -e "DEBUG"="${_DEBUG}" \
   -e "TARGET_DOMAIN"="${ENV_TARGET_DOMAIN}" \
+  -e "TARGET_DOMAIN_PORT"="${ENV_TARGET_DOMAIN_PORT}" \
   -e "TARGET_DOMAIN_USER"="${ENV_TARGET_DOMAIN_USER}" \
   -e "SSH_PRIVATE_KEY_BASE64"="${ENV_SSH_PRIVATE_KEY_BASE64}" \
   -e "NC_URL"="${ENV_NC_URL}" \
@@ -80,4 +82,4 @@ docker run ${RESTART_OPTION} --hostname backup \
   -e POSTGRES_HOST="${ENV_POSTGRES_HOST}" \
   -e PROVISION_MODE="${ENV_PROVISION_MODE}" \
   -e "CRON"="${ENV_CRON}" \
-  devp1337/backup:latest "${@}"
+  devp1337/backup:test "${@}"

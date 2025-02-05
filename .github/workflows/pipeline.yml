@@ -64,3 +64,69 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           repository: ${{ vars.DOCKER_HUB_USERNAME }}/backup
           readme-filepath: ./README.md
+
+
+  test:
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
+
+        - name: Generate SSH Key Pair
+          run: |
+            mkdir -p sftp-keys
+            ssh-keygen -t rsa -b 2048 -f sftp-keys/id_rsa -q -N ""
+            chmod 600 sftp-keys/id_rsa
+
+        - name: Start SFTP Server with Mounts
+          run: |
+            docker run -d --name fake-sftp \
+              -p 2222:22 \
+              -v $(pwd)/sftp-keys/id_rsa.pub:/home/test/.ssh/keys/id_rsa.pub:ro \
+              -v $(pwd)/sftp-data:/home/test/uploads \
+              atmoz/sftp test::1001
+
+        - name: Wait for SFTP server to be ready
+          run: |
+            for i in {1..10}; do
+              if nc -z localhost 2222; then
+                echo "SFTP server is up!"
+                exit 0
+              fi
+              echo "Waiting for SFTP server..."
+              sleep 2
+            done
+            echo "SFTP server did not start in time" && exit 1
+
+        - name: Create test files
+          run: |
+            mkdir -p test-data
+            echo "File 1 content" > test-data/file1.txt
+            echo "File 2 content" > test-data/file2.txt
+            echo "File 3 content" > test-data/file3.txt
+
+        - name: delete before
+          run: |
+            docker rmi ${{ vars.DOCKER_HUB_USERNAME }}/backup:test || true
+
+        - uses: docker/setup-buildx-action@v3
+        - name: Build for testing
+          uses: docker/build-push-action@v6
+          with:
+            context: ./docker
+            push: false
+            load: true
+            tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:test
+            platforms: linux/amd64
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+
+        - name: prepare test.env
+          run: |
+              echo "ENV_SSH_PRIVATE_KEY_BASE64=$(cat $(pwd)/sftp-keys/id_rsa | base64 -w 0)" >> test.env
+              cat test.env
+
+        - name: Run Backup Container
+          run: |
+              ./run_backup.sh backup /source

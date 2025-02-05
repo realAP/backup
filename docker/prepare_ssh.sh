@@ -13,5 +13,14 @@ cat <<EOL > /etc/ssh/ssh_config
 Host storagebox
     Hostname $TARGET_DOMAIN
     User $TARGET_DOMAIN_USER
+    Port ${TARGET_DOMAIN_PORT:-22}
     IdentityFile /private_key
 EOL
+
+
+echo "DEBUG: prepare_ssh.sh"
+echo "cat known hosts"
+cat /etc/ssh/ssh_known_hosts
+
+echo "cat ssh_config"
+cat /etc/ssh/ssh_config
