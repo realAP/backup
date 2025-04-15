@@ -56,7 +56,7 @@ else
 fi
 
 
-docker run ${RESTART_OPTION} --network=backup_default --hostname backup \
+docker run ${RESTART_OPTION} --network=backup_default --hostname "${SCRIPT_CONTAINER_HOSTNAME:-backup} \
   -v "${SCRIPT_RESTORE_DATA_TO}":/restore \
   $LOG_MOUNT \
   $SOURCE_MOUNT \
@@ -71,6 +71,7 @@ docker run ${RESTART_OPTION} --network=backup_default --hostname backup \
   -e "RESTIC_PASSWORD"="${ENV_RESTIC_PASSWORD}" \
   -e "TELEGRAM_TOKEN"="${ENV_TELEGRAM_TOKEN}" \
   -e "TELEGRAM_CHAT_ID"="${ENV_TELEGRAM_CHAT_ID}" \
+  -e "TELEGRAM_COMMENT"="${ENV_TELEGRAM_COMMENT}" \
   -e POSTGRES_USER="${ENV_POSTGRES_USER}" \
   -e POSTGRES_PASSWORD="${ENV_POSTGRES_PASSWORD}" \
   -e POSTGRES_DATABASE="${ENV_POSTGRES_DATABASE}" \
