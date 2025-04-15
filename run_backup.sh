@@ -59,7 +59,7 @@ else
   echo "Mounting source to directory: $SCRIPT_DATA_TO_BACKUP"
 fi
 
-docker run ${RESTART_OPTION} --hostname backup \
+docker run ${RESTART_OPTION} --hostname "${SCRIPT_CONTAINER_HOSTNAME:-backup} \
   $RESTORE_MOUNT \
   $LOG_MOUNT \
   $SOURCE_MOUNT \
@@ -74,6 +74,7 @@ docker run ${RESTART_OPTION} --hostname backup \
   -e "RESTIC_PASSWORD"="${ENV_RESTIC_PASSWORD}" \
   -e "TELEGRAM_TOKEN"="${ENV_TELEGRAM_TOKEN}" \
   -e "TELEGRAM_CHAT_ID"="${ENV_TELEGRAM_CHAT_ID}" \
+  -e "TELEGRAM_COMMENT"="${ENV_TELEGRAM_COMMENT}" \
   -e POSTGRES_USER="${ENV_POSTGRES_USER}" \
   -e POSTGRES_PASSWORD="${ENV_POSTGRES_PASSWORD}" \
   -e POSTGRES_DATABASE="${ENV_POSTGRES_DATABASE}" \

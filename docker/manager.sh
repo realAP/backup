@@ -3,6 +3,9 @@
 provisionLastLogfile="/var/log/provision-last.log"
 backupLastLogfile="/var/log/backup-last.log"
 
+telegram.sh "hostname: $(hostname)"
+telegram.sh "comment: ${comment}"
+
 # check which provision mode to execute
 if [[ "$PROVISION_MODE" == "nextcloud" ]]; then
   nextcloud.sh 2>&1 | tee ${provisionLastLogfile}
