@@ -92,27 +92,30 @@ jobs:
             context: ./docker
             push: false
             load: true
-            tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:test
+            tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
             platforms: linux/amd64
             cache-from: type=gha
             cache-to: type=gha,mode=max
 
         - name: prepare test.env for provider mode none and bind mode mounting
           run: |
-            echo "SCRIPT_DATA_TO_BACKUP=test-data" >> .env
             mkdir -p restore
-            echo "SCRIPT_RESTORE_DATA_TO=/restore" >>.env
-            echo "SCRIPT_CONTAINER_HOSTNAME=test-backup" >> .env
-            echo "ENV_TELEGRAM_COMMENT=hello from pipeline" >> .env
-            echo "ENV_RESTIC_REPOSITORY_NAME=test-pipeline" >> .env
-            echo "ENV_RESTIC_PASSWORD=${{ secrets.ENV_RESTIC_PASSWORD }}" >> .env
-            echo "ENV_TELEGRAM_TOKEN=${{ secrets.ENV_TELEGRAM_TOKEN }}" >> .env
-            echo "ENV_TELEGRAM_CHAT_ID=${{ secrets.ENV_TELEGRAM_CHAT_ID }}" >> .env
-            echo "ENV_CRON='0 1 * * *'" >> .env
-            echo "ENV_PROVISION_MODE='none'" >> .env
-            echo "ENV_TARGET_DOMAIN=${{ secrets.ENV_TARGET_DOMAIN }}" >> .env
-            echo "ENV_TARGET_DOMAIN_USER=${{ secrets.ENV_TARGET_DOMAIN_USER }}" >> .env
-            echo "ENV_SSH_PRIVATE_KEY_BASE64=${{ secrets.ENV_SSH_PRIVATE_KEY_BASE64 }}" >> .env
+            
+            cat <<EOF > .env
+            SCRIPT_DATA_TO_BACKUP=test-data
+            SCRIPT_RESTORE_DATA_TO=/restore
+            SCRIPT_CONTAINER_HOSTNAME=test-backup
+            ENV_TELEGRAM_COMMENT=hello from pipeline
+            ENV_RESTIC_REPOSITORY_NAME=test-pipeline
+            ENV_RESTIC_PASSWORD=${{ secrets.ENV_RESTIC_PASSWORD }}
+            ENV_TELEGRAM_TOKEN=${{ secrets.ENV_TELEGRAM_TOKEN }}
+            ENV_TELEGRAM_CHAT_ID=${{ secrets.ENV_TELEGRAM_CHAT_ID }}
+            ENV_CRON='0 1 * * *'
+            ENV_PROVISION_MODE='none'
+            ENV_TARGET_DOMAIN=${{ secrets.ENV_TARGET_DOMAIN }}
+            ENV_TARGET_DOMAIN_USER=${{ secrets.ENV_TARGET_DOMAIN_USER }}
+            ENV_SSH_PRIVATE_KEY_BASE64=${{ secrets.ENV_SSH_PRIVATE_KEY_BASE64 }}
+            EOF
 
         - name: Run Backup Container
           run: |
