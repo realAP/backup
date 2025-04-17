@@ -87,10 +87,10 @@ jobs:
 
         - name: Create test files
           run: |
-            mkdir -p test-data
-            echo "File 1 content" > test-data/file1.txt
-            echo "File 2 content" > test-data/file2.txt
-            echo "File 3 content" > test-data/file3.txt
+            mkdir -p ${PWD}/restore/test-data/test-data
+            echo "File 1 content" > ${PWD}/restore/test-data/test-data/file1.txt
+            echo "File 2 content" > ${PWD}/restore/test-data/test-data/file2.txt
+            echo "File 3 content" > ${PWD}/restore/test-data/test-data/file3.txt
 
         - name: delete before
           run: |
@@ -150,7 +150,8 @@ jobs:
             ./run_backup.sh restore latest --target /restore
         - name: assert data
           run: |
-            count=$(ls -1 restore/test-data 2>/dev/null | wc -l)
+            ls ${PWD}/restore/test-data
+            count=$(ls -1 ${PWD}/restore/test-data 2>/dev/null | wc -l)
             if [ "$count" -eq 3 ]; then
               echo "✅ Exactly 3 items found in restore/test-data."
             else
