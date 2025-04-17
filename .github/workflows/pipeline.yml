@@ -71,6 +71,16 @@ jobs:
       runs-on: ubuntu-latest
 
       steps:
+        - name: test env
+          run: |
+            cat <<EOF > test
+            echo 
+            ENV_SSH_PRIVATE_KEY_BASE64="${{ secrets.TEST }}"
+            EOF
+            cat test
+            echo "encode it"
+            echo ${{ secrets.TEST }} | base64 --decode
+
         - name: Checkout repository
           uses: actions/checkout@v3
 
