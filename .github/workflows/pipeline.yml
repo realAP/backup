@@ -114,7 +114,7 @@ jobs:
             
             cat <<EOF > .env
             SCRIPT_DATA_TO_BACKUP="test-data"
-            SCRIPT_RESTORE_DATA_TO="/restore"
+            SCRIPT_RESTORE_DATA_TO="${PWD}/restore"
             SCRIPT_CONTAINER_HOSTNAME="test-backup"
             ENV_TELEGRAM_COMMENT="hello from pipeline"
             ENV_RESTIC_REPOSITORY_NAME="test-pipeline"
