@@ -87,6 +87,7 @@ jobs:
 
         - name: Create test files
           run: |
+            echo $PWD
             mkdir -p ${PWD}/restore/test-data/test-data
             echo "File 1 content" > ${PWD}/restore/test-data/test-data/file1.txt
             echo "File 2 content" > ${PWD}/restore/test-data/test-data/file2.txt
@@ -110,10 +111,10 @@ jobs:
 
         - name: prepare test.env for provider mode none and bind mode mounting
           run: |
-            mkdir -p restore
+            mkdir -p ${PWD}/restore
             
             cat <<EOF > .env
-            SCRIPT_DATA_TO_BACKUP="test-data"
+            SCRIPT_DATA_TO_BACKUP="${PWD}/test-data"
             SCRIPT_RESTORE_DATA_TO="${PWD}/restore"
             SCRIPT_CONTAINER_HOSTNAME="test-backup"
             ENV_TELEGRAM_COMMENT="hello from pipeline"
@@ -134,10 +135,10 @@ jobs:
 
         - name: Delete files
           run: |
-            rm -rf test-data
+            rm -rf ${PWD}/test-data
         - name: assert data is not there
           run: |
-            count=$(ls -1 restore/test-data 2>/dev/null | wc -l)
+            count=$(ls -1 ${PWD}/restore/test-data 2>/dev/null | wc -l)
             if [ "$count" -eq 0 ]; then
               echo "✅ Exactly 0 items found in restore/test-data."
             else
