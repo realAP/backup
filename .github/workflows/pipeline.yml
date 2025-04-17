@@ -76,10 +76,10 @@ jobs:
 
         - name: Create test files
           run: |
-            mkdir -p /test-data
-            echo "File 1 content" > /test-data/file1.txt
-            echo "File 2 content" > /test-data/file2.txt
-            echo "File 3 content" > /test-data/file3.txt
+            mkdir -p test-data
+            echo "File 1 content" > test-data/file1.txt
+            echo "File 2 content" > test-data/file2.txt
+            echo "File 3 content" > test-data/file3.txt
 
         - name: delete before
           run: |
@@ -99,8 +99,8 @@ jobs:
 
         - name: prepare test.env for provider mode none and bind mode mounting
           run: |
-            echo "SCRIPT_DATA_TO_BACKUP=/test-data" >> .env
-            mkdir -p /restore
+            echo "SCRIPT_DATA_TO_BACKUP=test-data" >> .env
+            mkdir -p restore
             echo "SCRIPT_RESTORE_DATA_TO=/restore" >>.env
             echo "SCRIPT_CONTAINER_HOSTNAME=test-backup" >> .env
             echo "ENV_TELEGRAM_COMMENT=hello from pipeline" >> .env
@@ -120,14 +120,14 @@ jobs:
 
         - name: Delete files
           run: |
-            rm -rf /test-data
+            rm -rf test-data
         - name: assert data is not there
           run: |
-            count=$(ls -1 /restore/test-data 2>/dev/null | wc -l)
+            count=$(ls -1 restore/test-data 2>/dev/null | wc -l)
             if [ "$count" -eq 0 ]; then
-              echo "✅ Exactly 0 items found in /restore/test-data."
+              echo "✅ Exactly 0 items found in restore/test-data."
             else
-              echo "❌ Found $count items in /restore/test-data, expected 0."
+              echo "❌ Found $count items in restore/test-data, expected 0."
               exit 1
             fi
 
@@ -136,10 +136,10 @@ jobs:
             ./run_backup.sh restore latest --target /restore
         - name: assert data
           run: |
-            count=$(ls -1 /restore/test-data 2>/dev/null | wc -l)
+            count=$(ls -1 restore/test-data 2>/dev/null | wc -l)
             if [ "$count" -eq 3 ]; then
-              echo "✅ Exactly 3 items found in /restore/test-data."
+              echo "✅ Exactly 3 items found in restore/test-data."
             else
-              echo "❌ Found $count items in /restore/test-data, expected 3."
+              echo "❌ Found $count items in restore/test-data, expected 3."
               exit 1
             fi
