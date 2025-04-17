@@ -79,7 +79,8 @@ jobs:
             EOF
             cat test
             echo "encode it"
-            echo ${{ secrets.TEST }} | base64 --decode
+            echo ${{ secrets.TEST }} | base64 --decode > test_file
+            cat test_file
 
         - name: Checkout repository
           uses: actions/checkout@v3
