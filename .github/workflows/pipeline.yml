@@ -130,7 +130,7 @@ jobs:
 
         - name: Run Backup Container
           run: |
-              ./run_backup.sh & sleep 120
+              ./run_backup.sh & sleep 400
 
         - name: Delete files
           run: |
