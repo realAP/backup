@@ -138,7 +138,7 @@ jobs:
             rm -rf ${PWD}/test-data
         - name: assert data is not there
           run: |
-            count=$(ls -1 ${PWD}/restore/test-data 2>/dev/null | wc -l)
+            count=$(ls -1 ${PWD}/test-data 2>/dev/null | wc -l)
             if [ "$count" -eq 0 ]; then
               echo "✅ Exactly 0 items found in restore/test-data."
             else
@@ -151,7 +151,6 @@ jobs:
             ./run_backup.sh restore latest --target /restore
         - name: assert data
           run: |
-            ls ${PWD}/restore/test-data
             count=$(ls -1 ${PWD}/restore/test-data 2>/dev/null | wc -l)
             if [ "$count" -eq 3 ]; then
               echo "✅ Exactly 3 items found in restore/test-data."
