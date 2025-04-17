@@ -59,7 +59,7 @@ else
   echo "Mounting source to directory: $SCRIPT_DATA_TO_BACKUP"
 fi
 
-docker run ${RESTART_OPTION} --hostname "${SCRIPT_CONTAINER_HOSTNAME:-backup} \
+docker run ${RESTART_OPTION} --hostname ${SCRIPT_CONTAINER_HOSTNAME:-backup} \
   $RESTORE_MOUNT \
   $LOG_MOUNT \
   $SOURCE_MOUNT \
