@@ -3,14 +3,15 @@ name: Pipeline
 on:
   push:
     branches:
-    - 'main'
-    - 'dev'
+      - 'main'
+      - 'dev'
   pull_request:
     types: [ opened, synchronize, reopened ]
   workflow_dispatch:
 
 jobs:
   publish-docker-image:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,12 +44,12 @@ jobs:
         if: contains('refs/heads/main', github.ref)
         uses: docker/build-push-action@v6
         with:
-         context: ./docker
-         push: true
-         tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest, ${{ vars.DOCKER_HUB_USERNAME }}/backup:${{ env.VERSION }}
-         platforms: linux/amd64,linux/arm/v7,linux/arm64
-         cache-from: type=gha
-         cache-to: type=gha,mode=max
+          context: ./docker
+          push: true
+          tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest, ${{ vars.DOCKER_HUB_USERNAME }}/backup:${{ env.VERSION }}
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   publish-dockerhub-description:
     if: contains('refs/heads/main', github.ref)
@@ -64,3 +65,84 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           repository: ${{ vars.DOCKER_HUB_USERNAME }}/backup
           readme-filepath: ./README.md
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: prepare test.env for provider mode none and bind mode mounting
+        run: |
+          mkdir -p ${PWD}/restore
+          
+          cat <<EOF > .env
+          SCRIPT_DATA_TO_BACKUP="${PWD}/test-data"
+          SCRIPT_RESTORE_DATA_TO="${PWD}/restore"
+          SCRIPT_CONTAINER_HOSTNAME="test-backup"
+          ENV_TELEGRAM_COMMENT="hello from pipeline"
+          ENV_RESTIC_REPOSITORY_NAME="test-pipeline"
+          ENV_RESTIC_PASSWORD="${{ secrets.ENV_RESTIC_PASSWORD }}"
+          ENV_TELEGRAM_TOKEN="${{ secrets.ENV_TELEGRAM_TOKEN }}"
+          ENV_TELEGRAM_CHAT_ID="${{ secrets.ENV_TELEGRAM_CHAT_ID }}"
+          ENV_CRON='0 1 * * *'
+          ENV_PROVISION_MODE='none'
+          ENV_TARGET_DOMAIN="${{ secrets.ENV_TARGET_DOMAIN }}"
+          ENV_TARGET_DOMAIN_USER="${{ secrets.ENV_TARGET_DOMAIN_USER }}"
+          ENV_SSH_PRIVATE_KEY_BASE64="${{ secrets.ENV_SSH_PRIVATE_KEY_BASE64 }}"
+          EOF
+
+      - name: Create test files
+        run: |
+          echo $PWD
+          mkdir -p ${PWD}/restore/test-data/test-data
+          echo "File 1 content" > ${PWD}/restore/test-data/test-data/file1.txt
+          echo "File 2 content" > ${PWD}/restore/test-data/test-data/file2.txt
+          echo "File 3 content" > ${PWD}/restore/test-data/test-data/file3.txt
+
+      - name: delete before
+        run: |
+          docker rmi ${{ vars.DOCKER_HUB_USERNAME }}/backup:test || true
+
+      - uses: docker/setup-buildx-action@v3
+      - name: Build for testing
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker
+          push: false
+          load: true
+          tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Backup Container
+        run: |
+          ./run_backup.sh & sleep 300
+
+      - name: Delete files and assert it
+        run: |
+          rm -rf ${PWD}/test-data
+          count=$(ls -1 ${PWD}/test-data 2>/dev/null | wc -l)
+          if [ "$count" -eq 0 ]; then
+            echo "✅ Exactly 0 items found in restore/test-data."
+          else
+            echo "❌ Found $count items in restore/test-data, expected 0."
+            exit 1
+          fi
+
+      - name: Restore Data from Backup
+        run: |
+          ./run_backup.sh restore latest --target /restore
+          echo "find"
+          find ${PWD}/restore
+          echo "ls command"
+          ls -1 ${PWD}/restore/test-data/test-data
+          count=$(ls -1 ${PWD}/restore/test-data/test-data 2>/dev/null | wc -l)
+          if [ "$count" -eq 3 ]; then
+            echo "✅ Exactly 3 items found in restore/test-data."
+          else
+            echo "❌ Found $count items in restore/test-data, expected 3."
+            exit 1
+          fi
