@@ -2,7 +2,7 @@
 set -e
 
 # make the host known
-ssh-keyscan -t rsa $TARGET_DOMAIN > /etc/ssh/ssh_known_hosts
+ssh-keyscan -t rsa "$TARGET_DOMAIN" > /etc/ssh/ssh_known_hosts
 
 # Create the private key file
 echo "$SSH_PRIVATE_KEY_BASE64" | base64 --decode > /private_key
