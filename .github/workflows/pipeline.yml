@@ -10,7 +10,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate test SSH keys
+        run: bash tests/e2e/ssh/generate_test_keys.sh
+
+      - name: Run E2E tests
+        run: bash tests/run_e2e.sh
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-logs
+          path: tests/e2e/logs/
+
   publish-docker-image:
+    needs: e2e-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
