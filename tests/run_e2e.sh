@@ -64,21 +64,36 @@ docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" ps 2>&1
 echo "=== Debug: Testing backup container connectivity ==="
 docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" exec -T backup bash -c 'echo "Container is running"; ls /run/secrets/ssh_key_base64 && echo "SSH key file exists"; cat /run/secrets/ssh_key_base64 | wc -c; echo "Env vars:"; env | grep -E "TARGET_DOMAIN|RESTIC|PROVISION_MODE|TELEGRAM|POSTGRES" | sort' 2>&1 || echo "WARNING: Could not exec into backup container"
 
-# Step 5: Run tests with verbose output, capture exit code
+# Step 5: Smoke test - verify core functionality before BATS
+echo "=== Smoke test: init SSH and restic ==="
+docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" exec -T backup bash -c '
+  export SSH_PRIVATE_KEY_BASE64=$(cat /run/secrets/ssh_key_base64)
+  export RESTIC_REPOSITORY="sftp:storagebox:${RESTIC_REPOSITORY_NAME}"
+  echo "=== Running prepare_ssh.sh ==="
+  prepare_ssh.sh
+  echo "=== SSH setup done ==="
+  echo "=== Testing SFTP connection ==="
+  ssh -o StrictHostKeyChecking=accept-new storagebox ls / || echo "SFTP connection test result: $?"
+  echo "=== Initializing restic repo ==="
+  restic init || restic cat config || echo "Restic init/config result: $?"
+  echo "=== Smoke test complete ==="
+' 2>&1 || echo "WARNING: Smoke test failed with exit code $?"
+
+# Step 6: Run tests with verbose output, capture exit code
 echo "=== Running BATS tests ==="
 set +e
-"${BATS}" --print-output-on-failure --timing "${E2E_DIR}"/test_*.bats 2>&1
+"${BATS}" --print-output-on-failure --verbose-run --trace --timing "${E2E_DIR}"/test_*.bats 2>&1
 TEST_EXIT=$?
 set -e
 
-# Step 6: Collect logs
+# Step 7: Collect logs
 echo "=== Collecting container logs ==="
 mkdir -p "${E2E_DIR}/logs"
 docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" logs > "${E2E_DIR}/logs/compose.log" 2>&1
 # Show logs in CI output too
 docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" logs 2>&1
 
-# Step 7: Tear down
+# Step 8: Tear down
 echo "=== Tearing down E2E test services ==="
 docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" down -v
 
