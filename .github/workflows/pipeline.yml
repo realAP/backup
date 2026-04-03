@@ -19,7 +19,22 @@ jobs:
         run: bash tests/e2e/ssh/generate_test_keys.sh
 
       - name: Run E2E tests
-        run: bash tests/run_e2e.sh
+        run: |
+          set -o pipefail
+          mkdir -p tests/e2e/logs
+          bash tests/run_e2e.sh 2>&1 | tee tests/e2e/logs/full_output.log
+
+      - name: Show logs on failure
+        if: always()
+        run: |
+          echo "### E2E Full Output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -200 tests/e2e/logs/full_output.log 2>/dev/null >> $GITHUB_STEP_SUMMARY || echo "No output log" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "### Container Logs" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat tests/e2e/logs/compose.log 2>/dev/null >> $GITHUB_STEP_SUMMARY || echo "No compose logs" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload test logs on failure
         if: failure()
