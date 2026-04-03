@@ -3,7 +3,6 @@ services:
     image: atmoz/sftp
     volumes:
       - ./ssh/test_key.pub:/home/testuser/.ssh/keys/test_key.pub:ro
-      - sftp-data:/home/testuser/repos
     command: "testuser::1001:::repos"
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /etc/ssh/ssh_host_rsa_key"]
@@ -70,7 +69,6 @@ services:
       - telegram-logs:/telegram-logs:ro
 
 volumes:
-  sftp-data:
   telegram-logs:
   backup-source:
   backup-restore:
