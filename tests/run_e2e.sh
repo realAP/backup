@@ -24,26 +24,62 @@ if [ ! -f "${E2E_DIR}/ssh/test_key" ]; then
   bash "${E2E_DIR}/ssh/generate_test_keys.sh"
 fi
 
-# Step 3: Start Docker Compose services
-echo "Starting E2E test services..."
-docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" up -d --build --wait
+# Debug: show generated files
+echo "=== Debug: SSH key files ==="
+ls -la "${E2E_DIR}/ssh/"
+echo "=== Debug: test_key_base64 content length ==="
+wc -c "${E2E_DIR}/ssh/test_key_base64"
 
-# Step 4: Run tests, capture exit code
-echo "Running BATS tests..."
+# Step 3: Build and start Docker Compose services
+echo "=== Building Docker images ==="
+docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" build 2>&1
+echo "=== Starting E2E test services ==="
+docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" up -d 2>&1
+
+# Step 4: Wait for services and show debug info
+echo "=== Waiting for services to be healthy ==="
+for i in $(seq 1 60); do
+  echo "--- Attempt $i ---"
+  docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" ps 2>&1
+  # Check if all services are healthy/running
+  UNHEALTHY=$(docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" ps --format json 2>/dev/null | grep -v '"healthy"' | grep -c '"Health"' || true)
+  if [ "$UNHEALTHY" = "0" ]; then
+    echo "All services healthy!"
+    break
+  fi
+  if [ "$i" = "60" ]; then
+    echo "=== TIMEOUT: Services not healthy after 60 attempts ==="
+    echo "=== Container logs ==="
+    docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" logs 2>&1
+    exit 1
+  fi
+  sleep 3
+done
+
+# Debug: show container status
+echo "=== Debug: Final container status ==="
+docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" ps 2>&1
+
+# Debug: verify backup container can reach other services
+echo "=== Debug: Testing backup container connectivity ==="
+docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" exec -T backup bash -c 'echo "Container is running"; ls /run/secrets/ssh_key_base64 && echo "SSH key file exists"; cat /run/secrets/ssh_key_base64 | wc -c; echo "Env vars:"; env | grep -E "TARGET_DOMAIN|RESTIC|PROVISION_MODE|TELEGRAM|POSTGRES" | sort' 2>&1 || echo "WARNING: Could not exec into backup container"
+
+# Step 5: Run tests with verbose output, capture exit code
+echo "=== Running BATS tests ==="
 set +e
-"${BATS}" "${E2E_DIR}"/test_*.bats
+"${BATS}" --print-output-on-failure --timing "${E2E_DIR}"/test_*.bats 2>&1
 TEST_EXIT=$?
 set -e
 
-# Step 5: Collect logs on failure
-if [ $TEST_EXIT -ne 0 ]; then
-  echo "=== Tests failed. Collecting logs... ==="
-  mkdir -p "${E2E_DIR}/logs"
-  docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" logs > "${E2E_DIR}/logs/compose.log" 2>&1
-fi
+# Step 6: Collect logs
+echo "=== Collecting container logs ==="
+mkdir -p "${E2E_DIR}/logs"
+docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" logs > "${E2E_DIR}/logs/compose.log" 2>&1
+# Show logs in CI output too
+docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" logs 2>&1
 
-# Step 6: Tear down
-echo "Tearing down E2E test services..."
+# Step 7: Tear down
+echo "=== Tearing down E2E test services ==="
 docker compose -p e2e -f "${E2E_DIR}/docker-compose.e2e.yaml" down -v
 
 echo "=== E2E tests finished with exit code: ${TEST_EXIT} ==="
