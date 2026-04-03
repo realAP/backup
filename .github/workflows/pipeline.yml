@@ -37,13 +37,27 @@ jobs:
             try {
               const fullLog = fs.readFileSync('tests/e2e/logs/full_output.log', 'utf8');
               const lines = fullLog.split('\n');
-              const last150 = lines.slice(-150).join('\n');
-              body += '### Test Output (last 150 lines)\n```\n' + last150 + '\n```\n\n';
-            } catch(e) { body += 'No full output log found.\n\n'; }
-            try {
-              const composeLog = fs.readFileSync('tests/e2e/logs/compose.log', 'utf8');
-              body += '### Container Logs\n```\n' + composeLog.slice(-3000) + '\n```\n';
-            } catch(e) { body += 'No compose logs found.\n'; }
+              // Find BATS output section
+              const batsStart = lines.findIndex(l => l.includes('Running BATS tests'));
+              const batsEnd = lines.findIndex(l => l.includes('tests finished with exit code'));
+              if (batsStart >= 0 && batsEnd >= 0) {
+                const batsLines = lines.slice(batsStart, batsEnd + 1).join('\n');
+                body += '### BATS Test Output\n```\n' + batsLines.slice(0, 30000) + '\n```\n\n';
+              }
+              // Also show smoke test
+              const smokeStart = lines.findIndex(l => l.includes('Smoke test'));
+              const smokeEnd = lines.findIndex(l => l.includes('Running BATS'));
+              if (smokeStart >= 0 && smokeEnd >= 0) {
+                const smokeLines = lines.slice(smokeStart, smokeEnd).join('\n');
+                body += '### Smoke Test Output\n```\n' + smokeLines.slice(0, 10000) + '\n```\n\n';
+              }
+              // Debug section
+              const debugStart = lines.findIndex(l => l.includes('Debug:'));
+              if (debugStart >= 0 && smokeStart >= 0) {
+                const debugLines = lines.slice(debugStart, smokeStart).join('\n');
+                body += '### Debug Output\n```\n' + debugLines.slice(0, 5000) + '\n```\n';
+              }
+            } catch(e) { body += 'No full output log found: ' + e.message + '\n\n'; }
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
