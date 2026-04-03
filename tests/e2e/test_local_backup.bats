@@ -19,7 +19,8 @@ teardown_file() {
 }
 
 @test "backup: copy test files to /source" {
-  run_in_backup 'cp -r /test_data/* /source/'
+  run run_in_backup 'cp -r /test_data/* /source/'
+  assert_success
   run run_in_backup 'ls /source/file1.txt /source/file2.txt /source/subdir/file3.txt'
   assert_success
 }

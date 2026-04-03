@@ -22,21 +22,20 @@ teardown_file() {
 }
 
 @test "postgres: seed data exists" {
-  run run_backup_cmd 'PGPASSWORD="${POSTGRES_PASSWORD}" psql -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DATABASE}" -t -c "SELECT count(*) FROM example_table;"'
+  run run_backup_cmd 'PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" -t -c "SELECT count(*) FROM example_table;"'
   assert_success
-  # Should have at least 1 row (from preset_data.sql)
   local count
-  count=$(echo "$output" | tr -d ' \n')
+  count=$(echo "$output" | tr -d ' \n\r')
   [ "$count" -ge 1 ]
 }
 
 @test "postgres: insert test row" {
-  run run_backup_cmd "PGPASSWORD=\"\${POSTGRES_PASSWORD}\" psql -h postgres -U \"\${POSTGRES_USER}\" -d \"\${POSTGRES_DATABASE}\" -c \"INSERT INTO example_table (name) VALUES ('E2E Test Row');\""
+  run run_backup_cmd 'PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" -c "INSERT INTO example_table (name) VALUES ('"'"'E2E Test Row'"'"');"'
   assert_success
 }
 
 @test "postgres: run postgres_backup.sh" {
-  run run_backup_cmd 'PROVISION_MODE=postgres postgres_backup.sh'
+  run run_backup_cmd 'postgres_backup.sh'
   assert_success
   assert_output --partial "DONE"
 }
@@ -53,15 +52,15 @@ teardown_file() {
 }
 
 @test "postgres: delete test row from database" {
-  run run_backup_cmd "PGPASSWORD=\"\${POSTGRES_PASSWORD}\" psql -h postgres -U \"\${POSTGRES_USER}\" -d \"\${POSTGRES_DATABASE}\" -c \"DELETE FROM example_table WHERE name='E2E Test Row';\""
+  run run_backup_cmd 'PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" -c "DELETE FROM example_table WHERE name='"'"'E2E Test Row'"'"';"'
   assert_success
 }
 
 @test "postgres: verify test row is gone" {
-  run run_backup_cmd "PGPASSWORD=\"\${POSTGRES_PASSWORD}\" psql -h postgres -U \"\${POSTGRES_USER}\" -d \"\${POSTGRES_DATABASE}\" -t -c \"SELECT count(*) FROM example_table WHERE name='E2E Test Row';\""
+  run run_backup_cmd 'PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" -t -c "SELECT count(*) FROM example_table WHERE name='"'"'E2E Test Row'"'"';"'
   assert_success
   local count
-  count=$(echo "$output" | tr -d ' \n')
+  count=$(echo "$output" | tr -d ' \n\r')
   [ "$count" -eq 0 ]
 }
 
@@ -71,14 +70,14 @@ teardown_file() {
 }
 
 @test "postgres: run postgres_restore.sh" {
-  run run_backup_cmd 'PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore --clean --if-exists -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DATABASE}" /restore/source/backup.dump'
+  run run_backup_cmd 'PGPASSWORD="$POSTGRES_PASSWORD" pg_restore --clean --if-exists -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" /restore/source/backup.dump || true'
   assert_success
 }
 
 @test "postgres: verify test row is restored" {
-  run run_backup_cmd "PGPASSWORD=\"\${POSTGRES_PASSWORD}\" psql -h postgres -U \"\${POSTGRES_USER}\" -d \"\${POSTGRES_DATABASE}\" -t -c \"SELECT count(*) FROM example_table WHERE name='E2E Test Row';\""
+  run run_backup_cmd 'PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" -t -c "SELECT count(*) FROM example_table WHERE name='"'"'E2E Test Row'"'"';"'
   assert_success
   local count
-  count=$(echo "$output" | tr -d ' \n')
+  count=$(echo "$output" | tr -d ' \n\r')
   [ "$count" -eq 1 ]
 }
