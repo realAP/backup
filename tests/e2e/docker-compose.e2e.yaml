@@ -1,0 +1,63 @@
+services:
+  mock-telegram:
+    build: ./mock-telegram
+    volumes:
+      - telegram-logs:/logs
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080')"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: testdb
+    volumes:
+      - ./fixtures/preset_data.sql:/docker-entrypoint-initdb.d/preset_data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  backup:
+    build:
+      context: ../../docker
+      dockerfile: Dockerfile
+    entrypoint: ["sleep", "infinity"]
+    depends_on:
+      mock-telegram:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      TARGET_DOMAIN: localhost
+      TARGET_DOMAIN_USER: testuser
+      SSH_PRIVATE_KEY_BASE64: "placeholder-not-used-for-local-repo"
+      RESTIC_REPOSITORY_NAME: /restic-repo
+      RESTIC_PASSWORD: test-password-e2e
+      RESTIC_REPOSITORY: /restic-repo
+      TELEGRAM_TOKEN: fake-token
+      TELEGRAM_CHAT_ID: "123456"
+      TELEGRAM_API_URL: http://mock-telegram:8080
+      CRON: "0 3 * * *"
+      PROVISION_MODE: none
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DATABASE: testdb
+      POSTGRES_HOST: postgres
+    volumes:
+      - ./fixtures/test_data:/test_data:ro
+      - backup-source:/source
+      - backup-restore:/restore
+      - backup-restic-repo:/restic-repo
+      - telegram-logs:/telegram-logs:ro
+
+volumes:
+  telegram-logs:
+  backup-source:
+  backup-restore:
+  backup-restic-repo:

@@ -235,3 +235,10 @@ fabric.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all
 /local.env
+
+# E2E test artifacts
+tests/e2e/ssh/test_key
+tests/e2e/ssh/test_key.pub
+tests/e2e/ssh/test_key_base64
+tests/e2e/bats/
+tests/e2e/logs/

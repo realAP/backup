@@ -20,7 +20,7 @@ else
 fi
 
 # Define the endpoint
-URL="https://api.telegram.org/bot${BOT_TOKEN}/sendMessage"
+URL="${TELEGRAM_API_URL:-https://api.telegram.org/bot${BOT_TOKEN}/sendMessage}"
 
 # Telegram has a limit of 4096 characters per message
 MAX_LENGTH=4096
