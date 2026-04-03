@@ -50,7 +50,7 @@ services:
       TARGET_DOMAIN: sftp-server
       TARGET_DOMAIN_USER: testuser
       SSH_PRIVATE_KEY_BASE64: "placeholder-loaded-at-runtime"
-      RESTIC_REPOSITORY_NAME: repos/test-repo
+      RESTIC_REPOSITORY_NAME: repos
       RESTIC_PASSWORD: test-password-e2e
       TELEGRAM_TOKEN: fake-token
       TELEGRAM_CHAT_ID: "123456"

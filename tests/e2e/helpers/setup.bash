@@ -51,7 +51,7 @@ wait_for_healthy() {
 # Clean up restic repository on SFTP server
 clean_restic_repo() {
   docker compose -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" exec -T sftp-server bash -c \
-    'rm -rf /home/testuser/repos/test-repo' 2>/dev/null || true
+    'rm -rf /home/testuser/repos/*' 2>/dev/null || true
 }
 
 # Clean source and restore volumes
