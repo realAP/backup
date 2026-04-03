@@ -47,7 +47,6 @@ load 'helpers/setup'
 # Test: all vars set correctly with mode=none
 @test "prepare.sh succeeds when all required vars are set (mode=none)" {
   run docker compose -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" exec -T \
-    -e SSH_PRIVATE_KEY_BASE64="$(cat tests/e2e/ssh/test_key_base64)" \
     backup bash -c 'export SSH_PRIVATE_KEY_BASE64=$(cat /run/secrets/ssh_key_base64); prepare.sh'
   assert_success
   assert_output --partial "All required environment variables are set"

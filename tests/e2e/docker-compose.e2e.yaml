@@ -6,7 +6,7 @@ services:
       - sftp-data:/home/testuser/repos
     command: "testuser::1001"
     healthcheck:
-      test: ["CMD", "sh", "-c", "ss -tlnp | grep -q ':22'"]
+      test: ["CMD", "sh", "-c", "test -f /etc/ssh/ssh_host_rsa_key"]
       interval: 3s
       timeout: 5s
       retries: 10
@@ -45,10 +45,12 @@ services:
         condition: service_healthy
       mock-telegram:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     environment:
       TARGET_DOMAIN: sftp-server
       TARGET_DOMAIN_USER: testuser
-      SSH_PRIVATE_KEY_BASE64_FILE: /run/secrets/ssh_key_base64
+      SSH_PRIVATE_KEY_BASE64: "placeholder-loaded-at-runtime"
       RESTIC_REPOSITORY_NAME: repos/test-repo
       RESTIC_PASSWORD: test-password-e2e
       TELEGRAM_TOKEN: fake-token

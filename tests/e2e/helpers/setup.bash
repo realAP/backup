@@ -13,12 +13,10 @@ run_in_backup() {
 # Initialize SSH and restic environment inside the backup container
 # Must be called before any backup/restore operations
 init_backup_env() {
-  # Read the base64 key from the mounted secret file
   run_in_backup '
     export SSH_PRIVATE_KEY_BASE64=$(cat /run/secrets/ssh_key_base64)
     export RESTIC_REPOSITORY="sftp:storagebox:${RESTIC_REPOSITORY_NAME}"
     prepare_ssh.sh
-    # Save env for subsequent calls
     declare -p | grep -Ev "BASHOPTS|BASH_VERSINFO|EUID|PPID|SHELLOPTS|UID" > /container.env
   '
 }
