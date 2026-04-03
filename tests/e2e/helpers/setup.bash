@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Common variables
-export COMPOSE_FILE="${BATS_TEST_DIRNAME}/../docker-compose.e2e.yaml"
+export COMPOSE_FILE="${BATS_TEST_DIRNAME}/docker-compose.e2e.yaml"
 export COMPOSE_PROJECT="e2e"
 export BACKUP_CONTAINER="e2e-backup-1"
 

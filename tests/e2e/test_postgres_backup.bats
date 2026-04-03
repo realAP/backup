@@ -71,7 +71,7 @@ teardown_file() {
 }
 
 @test "postgres: run postgres_restore.sh" {
-  run run_backup_cmd 'PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore --clean -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DATABASE}" -v /restore/source/backup.dump'
+  run run_backup_cmd 'PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore --clean --if-exists -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DATABASE}" /restore/source/backup.dump'
   assert_success
 }
 
