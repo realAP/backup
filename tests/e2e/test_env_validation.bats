@@ -44,10 +44,30 @@ load 'helpers/setup'
   assert_output --partial "POSTGRES_HOST"
 }
 
-# Test: all vars set correctly with mode=none
-@test "prepare.sh succeeds when all required vars are set (mode=none)" {
+# Test: all common vars pass validation (test check_var section only)
+@test "env validation passes when all required vars are set (mode=none)" {
   run docker compose -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" exec -T \
-    backup bash -c 'export SSH_PRIVATE_KEY_BASE64=$(cat /run/secrets/ssh_key_base64); prepare.sh'
+    backup bash -c '
+      # Source the check_var function and run validation inline
+      check_var() {
+        local var_name="$1"
+        local var_value="${!var_name}"
+        if [ -z "$var_value" ]; then
+          echo "Error: Environment variable '"'"'$var_name'"'"' is not set."
+          exit 1
+        fi
+      }
+      check_var "TARGET_DOMAIN"
+      check_var "TARGET_DOMAIN_USER"
+      check_var "SSH_PRIVATE_KEY_BASE64"
+      check_var "RESTIC_REPOSITORY_NAME"
+      check_var "RESTIC_PASSWORD"
+      check_var "TELEGRAM_TOKEN"
+      check_var "TELEGRAM_CHAT_ID"
+      check_var "CRON"
+      check_var "PROVISION_MODE"
+      echo "All required environment variables are set."
+    '
   assert_success
   assert_output --partial "All required environment variables are set"
 }

@@ -1,15 +1,4 @@
 services:
-  sftp-server:
-    image: atmoz/sftp
-    volumes:
-      - ./ssh/test_key.pub:/home/testuser/.ssh/keys/test_key.pub:ro
-    command: "testuser::1001:::repos"
-    healthcheck:
-      test: ["CMD", "sh", "-c", "test -f /etc/ssh/ssh_host_rsa_key"]
-      interval: 3s
-      timeout: 5s
-      retries: 10
-
   mock-telegram:
     build: ./mock-telegram
     volumes:
@@ -40,18 +29,17 @@ services:
       dockerfile: Dockerfile
     entrypoint: ["sleep", "infinity"]
     depends_on:
-      sftp-server:
-        condition: service_healthy
       mock-telegram:
         condition: service_healthy
       postgres:
         condition: service_healthy
     environment:
-      TARGET_DOMAIN: sftp-server
+      TARGET_DOMAIN: localhost
       TARGET_DOMAIN_USER: testuser
-      SSH_PRIVATE_KEY_BASE64: "placeholder-loaded-at-runtime"
-      RESTIC_REPOSITORY_NAME: repos
+      SSH_PRIVATE_KEY_BASE64: "placeholder-not-used-for-local-repo"
+      RESTIC_REPOSITORY_NAME: /restic-repo
       RESTIC_PASSWORD: test-password-e2e
+      RESTIC_REPOSITORY: /restic-repo
       TELEGRAM_TOKEN: fake-token
       TELEGRAM_CHAT_ID: "123456"
       TELEGRAM_API_URL: http://mock-telegram:8080
@@ -62,13 +50,14 @@ services:
       POSTGRES_DATABASE: testdb
       POSTGRES_HOST: postgres
     volumes:
-      - ./ssh/test_key_base64:/run/secrets/ssh_key_base64:ro
       - ./fixtures/test_data:/test_data:ro
       - backup-source:/source
       - backup-restore:/restore
+      - backup-restic-repo:/restic-repo
       - telegram-logs:/telegram-logs:ro
 
 volumes:
   telegram-logs:
   backup-source:
   backup-restore:
+  backup-restic-repo:

@@ -29,18 +29,7 @@ fi
 
 BATS="${BATS_DIR}/bats-core/bin/bats"
 
-# Step 2: Generate SSH keys if not present
-if [ ! -f "${E2E_DIR}/ssh/test_key" ]; then
-  echo "Generating test SSH keys..."
-  bash "${E2E_DIR}/ssh/generate_test_keys.sh"
-fi
-
-echo "=== Debug: SSH key files ==="
-ls -la "${E2E_DIR}/ssh/" || true
-echo "=== Debug: test_key_base64 content length ==="
-wc -c "${E2E_DIR}/ssh/test_key_base64" || true
-
-# Step 3: Build and start Docker Compose services
+# Step 2: Build and start Docker Compose services
 echo "=== Building Docker images ==="
 $COMPOSE_CMD build 2>&1
 if [ $? -ne 0 ]; then
@@ -63,29 +52,24 @@ $COMPOSE_CMD ps 2>&1
 echo "=== Debug: Testing backup container ==="
 $COMPOSE_CMD exec -T backup bash -c '
   echo "Container is running"
-  echo "--- Files ---"
-  ls -la /run/secrets/ssh_key_base64 2>&1 || echo "SSH key file NOT found"
-  echo "--- Key length ---"
-  cat /run/secrets/ssh_key_base64 2>/dev/null | wc -c
   echo "--- Env vars ---"
-  env | grep -E "TARGET_DOMAIN|RESTIC|PROVISION_MODE|TELEGRAM|POSTGRES" | sort
+  env | grep -E "RESTIC|PROVISION_MODE|TELEGRAM|POSTGRES" | sort
   echo "--- Test data ---"
   ls /test_data/ 2>&1 || echo "Test data NOT found"
+  echo "--- Restic repo dir ---"
+  ls -la /restic-repo/ 2>&1 || echo "Restic repo dir NOT found"
 ' 2>&1 || echo "WARNING: Could not exec into backup container"
 
-# Step 4: Smoke test
-echo "=== Smoke test: SSH + Restic ==="
+# Step 3: Smoke test - init restic with local repo
+echo "=== Smoke test: Restic init ==="
 $COMPOSE_CMD exec -T backup bash -c '
   set -x
-  export SSH_PRIVATE_KEY_BASE64=$(cat /run/secrets/ssh_key_base64)
-  export RESTIC_REPOSITORY="sftp:storagebox:${RESTIC_REPOSITORY_NAME}"
-  prepare_ssh.sh
-  echo "SSH setup OK"
+  export RESTIC_REPOSITORY="/restic-repo"
   restic cat config 2>/dev/null || restic init
   echo "Restic ready"
 ' 2>&1 || echo "WARNING: Smoke test failed with exit code $?"
 
-# Step 5: Run BATS tests
+# Step 4: Run BATS tests
 echo "=== Running BATS tests ==="
 "${BATS}" --print-output-on-failure --verbose-run --trace --timing "${E2E_DIR}"/test_*.bats 2>&1
 TEST_EXIT=$?

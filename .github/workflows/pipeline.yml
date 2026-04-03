@@ -18,9 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate test SSH keys
-        run: bash tests/e2e/ssh/generate_test_keys.sh
-
       - name: Run E2E tests
         run: |
           set -o pipefail
