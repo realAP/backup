@@ -59,7 +59,7 @@ else
   echo "Mounting source to directory: $SCRIPT_DATA_TO_BACKUP"
 fi
 
-docker run ${RESTART_OPTION} --hostname "${SCRIPT_CONTAINER_HOSTNAME:-backup} \
+docker run ${RESTART_OPTION} --hostname "${SCRIPT_CONTAINER_HOSTNAME:-backup}" \
   $RESTORE_MOUNT \
   $LOG_MOUNT \
   $SOURCE_MOUNT \
@@ -81,4 +81,10 @@ docker run ${RESTART_OPTION} --hostname "${SCRIPT_CONTAINER_HOSTNAME:-backup} \
   -e POSTGRES_HOST="${ENV_POSTGRES_HOST}" \
   -e PROVISION_MODE="${ENV_PROVISION_MODE}" \
   -e "CRON"="${ENV_CRON}" \
+  -e "STARLINK_MODE"="${ENV_STARLINK_MODE}" \
+  -e "BACKUP_RETRIES"="${ENV_BACKUP_RETRIES}" \
+  -e "BACKUP_RETRY_DELAY"="${ENV_BACKUP_RETRY_DELAY}" \
+  -e "BACKUP_CONNECTIONS"="${ENV_BACKUP_CONNECTIONS}" \
+  -e "BACKUP_UPLOAD_LIMIT"="${ENV_BACKUP_UPLOAD_LIMIT}" \
+  -e "BACKUP_LOCK_RETRY"="${ENV_BACKUP_LOCK_RETRY}" \
   devp1337/backup:latest "${@}"

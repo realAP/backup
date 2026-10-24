@@ -4,13 +4,32 @@ on:
   push:
     branches:
     - 'main'
-    - 'dev'
   pull_request:
     types: [ opened, synchronize, reopened ]
   workflow_dispatch:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: syntax check scripts
+        run: |
+          for f in docker/*.sh run_backup.sh; do
+            bash -n "$f" || exit 1
+          done
+      - uses: docker/setup-buildx-action@v3
+      - name: build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   publish-docker-image:
+    if: github.ref == 'refs/heads/main'
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,38 +39,35 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Login to Docker Hub
-        if: contains('refs/heads/main', github.ref) || contains('refs/heads/dev', github.ref)
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - uses: docker/setup-buildx-action@v3
+      - name: check if version already exists
+        id: exists
+        run: |
+          if docker manifest inspect ${{ vars.DOCKER_HUB_USERNAME }}/backup:${VERSION} >/dev/null 2>&1; then
+            echo "Version ${VERSION} already exists, skip build"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Build and push dev
-        if: contains('refs/heads/dev', github.ref)
+      - uses: docker/setup-buildx-action@v3
+        if: steps.exists.outputs.exists != 'true'
+
+      - name: Build and push main
+        if: steps.exists.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./docker
-          push: ${{ contains('refs/heads/main', github.ref) }}
-          tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:dev
+          push: true
+          tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest, ${{ vars.DOCKER_HUB_USERNAME }}/backup:${{ env.VERSION }}
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push main
-        if: contains('refs/heads/main', github.ref)
-        uses: docker/build-push-action@v6
-        with:
-         context: ./docker
-         push: true
-         tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest, ${{ vars.DOCKER_HUB_USERNAME }}/backup:${{ env.VERSION }}
-         platforms: linux/amd64,linux/arm/v7,linux/arm64
-         cache-from: type=gha
-         cache-to: type=gha,mode=max
-
   publish-dockerhub-description:
-    if: contains('refs/heads/main', github.ref)
+    if: github.ref == 'refs/heads/main'
     needs:
       - publish-docker-image
     runs-on: ubuntu-latest

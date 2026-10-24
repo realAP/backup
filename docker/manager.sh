@@ -1,10 +1,14 @@
 #!/usr/bin/bash
 
+# without pipefail the exit code of a "cmd | tee" pipe is the one of tee,
+# which is always 0 and made every run report success
+set -o pipefail
+
 provisionLastLogfile="/var/log/provision-last.log"
 backupLastLogfile="/var/log/backup-last.log"
 
 telegram.sh "hostname: $(hostname)"
-telegram.sh "comment: ${comment}"
+telegram.sh "comment: ${TELEGRAM_COMMENT}"
 
 # check which provision mode to execute
 if [[ "$PROVISION_MODE" == "nextcloud" ]]; then
@@ -22,7 +26,7 @@ if [[ "$PROVISION_MODE" == "none" ]]; then
   status_provision=$?
 fi
 
-backup.sh 2>&1 | cat | tee ${backupLastLogfile}
+backup.sh 2>&1 | tee ${backupLastLogfile}
 status_backup=$?
 
 telegram.sh ${provisionLastLogfile}
