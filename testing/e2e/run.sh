@@ -2,14 +2,38 @@
 # E2E: postgres -> backup image -> sftp, restore and compare. Same call locally and in the pipeline.
 #   ./testing/e2e/run.sh          run everything, clean up afterwards
 #   KEEP=1 ./testing/e2e/run.sh   leave the stack running for debugging
+#   SKIP_BUILD=1 ...              use the already built image backup-e2e:test
 set -euo pipefail
 cd "$(dirname "$0")"
 
 W=.work
 dc() { docker compose -p backup-e2e -f compose.yaml "$@"; }
-has() { local m; m=$(msgs); grep -q "$1" <<< "$m"; }
+# same, but the (very chatty) output is collapsed in the GitHub Actions log, not hidden
+dcg() {
+  local rc=0
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then echo "::group::docker compose $*"; fi
+  dc "$@" || rc=$?
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then echo "::endgroup::"; fi
+  return $rc
+}
 msgs() { cat "$W/telegram/messages.log" 2>/dev/null || true; }
-fail() { echo "FAIL: $*"; dc logs --no-color backup | tail -60; echo "--- telegram ---"; msgs; exit 1; }
+has() { local m; m=$(msgs); grep -q "$1" <<< "$m"; }
+
+# --- reporting: the test story stands out, docker output stays untouched in between ---
+if [[ -z "${NO_COLOR:-}" ]]; then B=$'\e[1;36m' G=$'\e[1;32m' R=$'\e[1;31m' N=$'\e[0m'; else B="" G="" R="" N=""; fi
+PASSED=()
+LINE=$(printf '=%.0s' {1..78})
+scenario() { printf '\n%s%s\n SCENARIO: %s\n%s%s\n' "$B" "$LINE" "$1" "$LINE" "$N"; }
+step() { printf '\n%s>> %s%s\n' "$B" "$1" "$N"; }
+pass() { PASSED+=("$1"); printf '%s   [OK] %s%s\n' "$G" "$1" "$N"; }
+fail() {
+  printf '\n%s   [FAILED] %s%s\n' "$R" "$1" "$N"
+  echo "--- last lines of the backup container ---"; dc logs --no-color backup | tail -60
+  echo "--- telegram messages received ---"; msgs
+  exit 1
+}
+# check "what must be true" <command...>
+check() { local what="$1"; shift; "$@" || fail "$what"; pass "$what"; }
 
 cleanup() {
   [[ "${KEEP:-0}" == "1" ]] || dc down -v --remove-orphans >/dev/null 2>&1 || true
@@ -24,51 +48,68 @@ wait_for_message() {
   done
   return 1
 }
+no_failure_reported() { ! has "Failure"; }
+psql() { dc exec -T db psql -U user -d database -tA -c "$1"; }
+table_is_empty() { [[ "$(psql "SELECT count(*) FROM example_table")" == "0" ]]; }
+original_row_is_back() { [[ "$(psql "SELECT name FROM example_table")" == "Sample Data" ]]; }
+restored_dump_has_original_data() {
+  dc run --rm -T --entrypoint bash backup -c 'pg_restore -f - /restore/source/backup.dump | grep -q "Sample Data"'
+}
 
+step "Preparing: ssh key pair for the backup target, pulling test images, building the backup image"
 rm -rf "$W" && mkdir -p "$W/telegram"
 ssh-keygen -q -t ed25519 -N '' -f "$W/id"
-cp "$W/id.pub" "$W/id.pub.tmp" && mv "$W/id.pub.tmp" "$W/id.pub"
 chmod 644 "$W/id.pub"
 SSH_PRIVATE_KEY_BASE64=$(base64 -w0 < "$W/id")
 export SSH_PRIVATE_KEY_BASE64
-
 dc down -v --remove-orphans >/dev/null 2>&1 || true
-[[ -n "${SKIP_BUILD:-}" ]] || dc build backup
+dcg pull --quiet sftp db telegram
+[[ -n "${SKIP_BUILD:-}" ]] || dcg build backup
 
-echo "### scenario 1: default mode, postgres -> sftp"
+# ---------------------------------------------------------------------------
+scenario "1 - Daily backup: database is backed up to the SFTP server and can be restored"
+
+step "A database with one known row and an empty SFTP server are started, then the backup container runs its first backup"
 export STARLINK_MODE=false
-dc up -d sftp db telegram
-dc up -d backup
-wait_for_message "Backup: Successful" 180 || fail "no 'Backup: Successful' message"
-has "postgres: Successful" || fail "no 'postgres: Successful' message"
-! has "Failure" || fail "a failure was reported"
-has "comment: e2e" || fail "telegram comment missing"
+dcg up -d sftp db telegram
+dcg up -d backup
 
-echo "### restore and compare"
-dc run --rm -T backup restore latest --target /restore >/dev/null
-dc run --rm -T --entrypoint bash backup -c \
-  'pg_restore -f - /restore/source/backup.dump | grep -q "Sample Data"' \
-  || fail "restored dump does not contain the preset data"
+step "Waiting for the backup to finish (the report arrives via Telegram)"
+check "The backup reported success via Telegram" wait_for_message "Backup: Successful" 180
+check "The database export reported success via Telegram" has "postgres: Successful"
+check "No failure was reported" no_failure_reported
+check "The configured comment appears in the report" has "comment: e2e"
 
-echo "### re-import into postgres"
-psql() { dc exec -T db psql -U user -d database -tA -c "$1"; }
+step "Disaster recovery, part 1: fetching the latest snapshot back from the SFTP server"
+dcg run --rm -T backup restore latest --target /restore >/dev/null
+check "The restored database dump contains the original row" restored_dump_has_original_data
+
+step "Disaster recovery, part 2: the data is lost in the database, then re-imported from the restored dump"
 psql "DELETE FROM example_table" >/dev/null
-[[ "$(psql "SELECT count(*) FROM example_table")" == "0" ]] || fail "could not empty the table"
-dc run --rm -T --entrypoint bash backup -c postgres_restore.sh >/dev/null 2>&1 || fail "postgres_restore.sh failed"
-[[ "$(psql "SELECT name FROM example_table")" == "Sample Data" ]] || fail "data not back in postgres after restore"
+check "The table is empty (data loss simulated)" table_is_empty
+dc run --rm -T --entrypoint bash backup -c postgres_restore.sh >/dev/null 2>&1 || fail "The restore script finished without error"
+pass "The restore script finished without error"
+check "The original row is back in the database" original_row_is_back
 
-echo "### scenario 2: starlink mode, target unreachable at start"
+# ---------------------------------------------------------------------------
+scenario "2 - Unstable connection (Starlink mode): backup server is unreachable when the container starts"
+
+step "The SFTP server is frozen, then the backup container starts in Starlink mode"
 : > "$W/telegram/messages.log"
 dc rm -sf backup >/dev/null
 dc pause sftp
 export STARLINK_MODE=true
-dc up -d --no-deps backup
+dcg up -d --no-deps backup
 sleep 25
-dc unpause sftp
-wait_for_message "Backup: Successful" 240 || fail "starlink run did not recover"
-logs=$(dc logs --no-color backup)
-grep -q "ssh-keyscan for sftp failed" <<< "$logs" || fail "keyscan retry did not happen"
-grep -q "Starlink mode: enabled" <<< "$logs" || fail "starlink mode not active"
-! has "Failure" || fail "a failure was reported"
 
-echo "E2E OK"
+step "The SFTP server becomes reachable again, the backup has to recover on its own"
+dc unpause sftp
+check "The backup finished successfully after the outage" wait_for_message "Backup: Successful" 240
+logs=$(dc logs --no-color backup)
+check "Starlink mode was active" grep -q "Starlink mode: enabled" <<< "$logs"
+check "The container retried reaching the server instead of giving up" grep -q "ssh-keyscan for sftp failed" <<< "$logs"
+check "No failure was reported" no_failure_reported
+
+# ---------------------------------------------------------------------------
+printf '\n%s%s\n E2E OK - %d checks passed%s\n' "$G" "$LINE" "${#PASSED[@]}" "$N"
+printf '   - %s\n' "${PASSED[@]}"
