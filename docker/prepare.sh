@@ -47,6 +47,25 @@ case "$PROVISION_MODE" in
         ;;
 esac
 
+# optional connection tuning, the defaults are applied in connection.sh
+source /bin/connection.sh
+if [[ ${starlink_enabled} -eq 1 ]]; then
+    echo "Starlink mode: enabled"
+    echo "  retries: ${BACKUP_RETRIES}, delay: ${BACKUP_RETRY_DELAY}s, connections: ${BACKUP_CONNECTIONS}, lock retry: ${BACKUP_LOCK_RETRY}"
+    echo "  upload limit: ${BACKUP_UPLOAD_LIMIT:-unlimited}"
+elif [ -n "$STARLINK_MODE" ]; then
+    echo "Starlink mode: disabled (STARLINK_MODE='$STARLINK_MODE')"
+fi
+
+if ! [[ "$BACKUP_RETRIES" =~ ^[0-9]+$ ]] || [ "$BACKUP_RETRIES" -lt 1 ]; then
+    echo "Error: 'BACKUP_RETRIES' has to be a number greater than 0, got '$BACKUP_RETRIES'."
+    exit 1
+fi
+if ! [[ "$BACKUP_RETRY_DELAY" =~ ^[0-9]+$ ]]; then
+    echo "Error: 'BACKUP_RETRY_DELAY' has to be a number of seconds, got '$BACKUP_RETRY_DELAY'."
+    exit 1
+fi
+
 echo "All required environment variables are set."
 
 ### create folder which are over written when mounted

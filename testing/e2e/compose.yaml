@@ -1,0 +1,67 @@
+# target (sftp), source (postgres) and telegram are real/mocked containers,
+# the backup image is built from ../../docker. Use run.sh to execute.
+services:
+  sftp:
+    image: atmoz/sftp:alpine
+    command: backup::1001:100:upload
+    volumes:
+      - ./.work/id.pub:/home/backup/.ssh/keys/id.pub:ro
+
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database
+    volumes:
+      - ../preset_data.sql:/docker-entrypoint-initdb.d/preset_data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d database"]
+      interval: 2s
+      retries: 30
+
+  telegram:
+    image: python:3-alpine
+    command: python /telegram_mock.py
+    volumes:
+      - ./telegram_mock.py:/telegram_mock.py:ro
+      - ./.work/telegram:/out
+
+  backup:
+    image: backup-e2e:test
+    container_name: backup-e2e-main
+    build: ../../docker
+    hostname: e2e
+    depends_on:
+      db:
+        condition: service_healthy
+      sftp:
+        condition: service_started
+      telegram:
+        condition: service_started
+    volumes:
+      - restore:/restore
+      - source:/source
+    environment:
+      TARGET_DOMAIN: sftp
+      TARGET_DOMAIN_USER: backup
+      SSH_PRIVATE_KEY_BASE64: ${SSH_PRIVATE_KEY_BASE64}
+      RESTIC_REPOSITORY_NAME: upload/repo
+      RESTIC_PASSWORD: e2e
+      TELEGRAM_TOKEN: token
+      TELEGRAM_CHAT_ID: chat
+      TELEGRAM_API_URL: http://telegram:8080
+      TELEGRAM_COMMENT: e2e
+      CRON: "0 0 1 1 *"
+      PROVISION_MODE: postgres
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: database
+      POSTGRES_HOST: db
+      STARLINK_MODE: ${STARLINK_MODE:-false}
+      BACKUP_RETRY_DELAY: "5"
+      BACKUP_UPLOAD_LIMIT: ${BACKUP_UPLOAD_LIMIT:-}
+
+volumes:
+  restore:
+  source:

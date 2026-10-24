@@ -235,3 +235,7 @@ fabric.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all
 /local.env
+
+# e2e test workdir
+testing/e2e/.work/
+__pycache__/

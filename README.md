@@ -41,6 +41,25 @@ Providers currently supported:
 There is a `.env` file where you can set all needed variables.
 It describes every variable and provides an example value.
 
+---
+**4. Unstable connections (Starlink)**
+
+Satellite links drop the TCP connection on every handover, the public IP changes regularly and the
+uplink is weak. Without any tuning a single dropout kills the whole restic transfer and the backup
+is only retried on the next cron trigger.
+
+Set `ENV_STARLINK_MODE=true` in the `.env` file to get:
+- ssh keep alive, so the session survives outages of about two minutes instead of failing
+- fewer parallel sftp connections (2 instead of 5), so there is less to break
+- a failed restic step is repeated up to 5 times with a growing delay (60s, 120s, 240s, ...)
+- `--retry-lock 15m`, so a lock left behind by an aborted run does not fail the next one
+- `ssh-keyscan` at container start is retried instead of aborting the start
+
+All single values can be overridden on top of it, see `ENV_BACKUP_*` in the `.env` file.
+`ENV_BACKUP_UPLOAD_LIMIT` is worth a look when the uplink is saturated during the backup.
+
+> This is purely additive. Without `ENV_STARLINK_MODE` the container behaves exactly as before.
+
 
 ## How to backup
 ### 1. Place your public key at the sftp server and use the private key to log into it.
