@@ -29,6 +29,7 @@ services:
 
   backup:
     image: backup-e2e:test
+    container_name: backup-e2e-main
     build: ../../docker
     hostname: e2e
     depends_on:

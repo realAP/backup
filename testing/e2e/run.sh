@@ -49,7 +49,8 @@ wait_for_message() {
   return 1
 }
 # starts a backup run exactly like the cron job does (environment from /container.env)
-run_like_cron() { dc exec -T -e BASH_ENV=/container.env backup bash -c manager.sh; }
+# (by container name: "compose exec backup" may pick the one-off lock holder container instead)
+run_like_cron() { docker exec -e BASH_ENV=/container.env backup-e2e-main bash -c manager.sh; }
 no_failure_reported() { ! has "Failure"; }
 psql() { dc exec -T db psql -U user -d database -tA -c "$1"; }
 table_is_empty() { [[ "$(psql "SELECT count(*) FROM example_table")" == "0" ]]; }
