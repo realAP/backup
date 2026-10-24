@@ -35,6 +35,10 @@ retry() {
       return 1
     fi
     echo "!!! ${label} failed (attempt ${attempt}/${BACKUP_RETRIES}), next try in ${delay}s"
+    # a broken connection cannot release the lock of the failed attempt, without
+    # this the next exclusive step (check/forget) waits for it. Only stale locks
+    # (dead process or older than 30min) are removed, never active ones.
+    restic "${restic_opts[@]}" unlock > /dev/null 2>&1 || true
     sleep "${delay}"
     attempt=$((attempt + 1))
     delay=$((delay * 2))

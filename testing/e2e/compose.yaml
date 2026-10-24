@@ -40,6 +40,7 @@ services:
         condition: service_started
     volumes:
       - restore:/restore
+      - source:/source
     environment:
       TARGET_DOMAIN: sftp
       TARGET_DOMAIN_USER: backup
@@ -58,6 +59,8 @@ services:
       POSTGRES_HOST: db
       STARLINK_MODE: ${STARLINK_MODE:-false}
       BACKUP_RETRY_DELAY: "5"
+      BACKUP_UPLOAD_LIMIT: ${BACKUP_UPLOAD_LIMIT:-}
 
 volumes:
   restore:
+  source:
