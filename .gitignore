@@ -238,3 +238,4 @@ fabric.properties
 
 # e2e test workdir
 testing/e2e/.work/
+__pycache__/
