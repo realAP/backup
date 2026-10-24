@@ -1,4 +1,5 @@
 # minimal telegram api: stores the text of every sendMessage call
+import os
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -17,4 +18,6 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+# runs as root, the host user must still be able to truncate and delete the log
+os.umask(0)
 HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()

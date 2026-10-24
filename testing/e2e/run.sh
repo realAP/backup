@@ -33,7 +33,7 @@ SSH_PRIVATE_KEY_BASE64=$(base64 -w0 < "$W/id")
 export SSH_PRIVATE_KEY_BASE64
 
 dc down -v --remove-orphans >/dev/null 2>&1 || true
-dc build backup
+[[ -n "${SKIP_BUILD:-}" ]] || dc build backup
 
 echo "### scenario 1: default mode, postgres -> sftp"
 export STARLINK_MODE=false

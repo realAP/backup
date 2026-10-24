@@ -18,8 +18,17 @@ jobs:
           for f in docker/*.sh run_backup.sh; do
             bash -n "$f" || exit 1
           done
+      - uses: docker/setup-buildx-action@v3
+      - name: build image (cached, loaded for the e2e test)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker
+          load: true
+          tags: backup-e2e:test
+          cache-from: type=gha,scope=backup
+          cache-to: type=gha,scope=backup,mode=max
       - name: e2e test
-        run: ./testing/e2e/run.sh
+        run: SKIP_BUILD=1 ./testing/e2e/run.sh
 
   publish-docker-image:
     if: github.ref == 'refs/heads/main'
@@ -57,8 +66,8 @@ jobs:
           push: true
           tags: ${{ vars.DOCKER_HUB_USERNAME }}/backup:latest, ${{ vars.DOCKER_HUB_USERNAME }}/backup:${{ env.VERSION }}
           platforms: linux/amd64,linux/arm/v7,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=backup
+          cache-to: type=gha,scope=backup,mode=max
 
   publish-dockerhub-description:
     if: github.ref == 'refs/heads/main'

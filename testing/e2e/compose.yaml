@@ -28,6 +28,7 @@ services:
       - ./.work/telegram:/out
 
   backup:
+    image: backup-e2e:test
     build: ../../docker
     hostname: e2e
     depends_on:
