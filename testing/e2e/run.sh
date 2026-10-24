@@ -50,6 +50,13 @@ dc run --rm -T --entrypoint bash backup -c \
   'pg_restore -f - /restore/source/backup.dump | grep -q "Sample Data"' \
   || fail "restored dump does not contain the preset data"
 
+echo "### re-import into postgres"
+psql() { dc exec -T db psql -U user -d database -tA -c "$1"; }
+psql "DELETE FROM example_table" >/dev/null
+[[ "$(psql "SELECT count(*) FROM example_table")" == "0" ]] || fail "could not empty the table"
+dc run --rm -T --entrypoint bash backup -c postgres_restore.sh >/dev/null 2>&1 || fail "postgres_restore.sh failed"
+[[ "$(psql "SELECT name FROM example_table")" == "Sample Data" ]] || fail "data not back in postgres after restore"
+
 echo "### scenario 2: starlink mode, target unreachable at start"
 : > "$W/telegram/messages.log"
 dc rm -sf backup >/dev/null
